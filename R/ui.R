@@ -9,27 +9,14 @@ ui <- dashboardPage(
     ## Sidebar content
     dashboardSidebar(
         sidebarMenu(
-            menuItem("Time Series", tabName = "timeseries", icon = icon("distribution")),
-            menuItem("GeoMap", tabName = "geomap", icon = icon("th"))
+            menuItem("GeoMap", tabName = "geomap", icon = icon("th")),
+            menuItem("Time Series", tabName = "timeseries", icon = icon("distribution"))
         )
     ),
     ## Body content
     dashboardBody(
         tabItems(
             # First tab content
-            tabItem(
-                tabName = "timeseries",
-                h2("Time Series on COVID-19"),
-                fluidRow(
-                    box(
-                        plotOutput("pois", height = 250),
-                        plotOutput("norm", height = 250)),
-                    box(
-                        title = "Controls",
-                        sliderInput("slider", "Number of observations:", 1, 100, 50))
-                )
-            ),
-            # Second tab content
             tabItem(
                 tabName = "geomap",
                 h2("World Map on COVID-19"),
@@ -41,6 +28,19 @@ ui <- dashboardPage(
                     helpText("Checking country details by single click on that country."),
                     uiOutput("WorldMapSelection"),
                     checkboxInput("legend", "Show legend", TRUE)
+                )
+            ),
+            # Second tab content
+            tabItem(
+                tabName = "timeseries",
+                h2("Time Series on COVID-19"),
+                fluidRow(
+                    box(
+                        plotOutput("pois", height = 250),
+                        plotOutput("norm", height = 250)),
+                    box(
+                        title = "Controls",
+                        sliderInput("slider", "Number of observations:", 1, 100, 50))
                 )
             )
         )

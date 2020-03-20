@@ -20,3 +20,11 @@ A file named WorldMapShape.RData will be generated.
 ```bash
 R -e "shiny::runApp('./R/app.R')"
 ```
+
+## TODO
+
+- Optimize World Map Code
+- Add Time Series Code
+- Publish
+- Blog
+

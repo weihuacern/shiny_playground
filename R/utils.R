@@ -4,6 +4,7 @@ library(tidyverse)
 getJHUCSSEDataset <- function(urlStr) {
     # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv
     # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv
+    # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv
     download <- getURL(urlStr)
     data <- read.csv(
         textConnection(download),
@@ -81,10 +82,11 @@ transformToGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     return(GeoMapDf)
 }
 
-#df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
+df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
 #head(df1, 4)
 #df2 <- getWIKIPopDataset()
 #head(df2, 4)
 #head(WorldMapShape, 1)
-#df <- transformToGeoMapDataset(df1, WorldMapShape)
-#head(df, 4)
+df <- transformToGeoMapDataset(df1, WorldMapShape)
+head(df, 4)
+max(df%>%select(-Pop)%>%select_if(is.numeric), na.rm = T)
