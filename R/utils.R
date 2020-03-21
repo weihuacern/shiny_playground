@@ -16,15 +16,6 @@ getJHUCSSEDataset <- function(urlStr) {
 # Object: WorldMapShape
 load("../data/WorldMapShape.RData")
 
-# TODO, to be removed
-getWIKIPopDataset <- function() {
-    # https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population
-    # Path hardcoded for now
-    population <- read.csv2("../data/pop.csv", stringsAsFactors = F)
-    population$Area <- as.character(unique(WorldMapShape$NAME)[charmatch(population$Country,unique(WorldMapShape$NAME))])
-    return(population)
-}
-
 transformToGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     # Align Country/Region Name to WorldMapShapedf$NAME
     JHUCSSEDf$`Country/Region`<-as.character(JHUCSSEDf$`Country/Region`)

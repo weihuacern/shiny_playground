@@ -55,12 +55,6 @@ getCountryPopup <- function(popupCtyName, popVarName, popupNum) {
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-    statType = "pois"
-    output[[statType]] <- renderStatPlot(statType, input)
-    
-    statType = "norm"
-    output[[statType]] <- renderStatPlot(statType, input)
-    
     # Table GeoMap: WorldMap
     output$WorldMap <- renderLeaflet({
         leaflet(data = WorldMapShape) %>%
