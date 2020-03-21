@@ -10,7 +10,7 @@ ui <- dashboardPage(
     dashboardSidebar(
         sidebarMenu(
             menuItem("GeoMap", tabName = "geomap", icon = icon("th")),
-            menuItem("Time Series", tabName = "timeseries", icon = icon("distribution"))
+            menuItem("Time Series", tabName = "timeseries", icon = icon("bar-chart-o"))
         )
     ),
     ## Body content
@@ -20,14 +20,17 @@ ui <- dashboardPage(
             tabItem(
                 tabName = "geomap",
                 h2("World Map on COVID-19"),
-                leafletOutput("WorldMap"),
-                absolutePanel(
-                    id = "input_date_control", class = "panel panel-default", draggable = T,
-                    selectInput("choices", "Confirmed or Dead?", choices = c(CHOICE_CONF, CHOICE_DEAD), selected = CHOICE_CONF),
-                    uiOutput("WorldMapSlider"),
-                    helpText("Checking country details by single click on that country."),
-                    uiOutput("WorldMapSelection"),
-                    checkboxInput("legend", "Show legend", TRUE)
+                leafletOutput("WorldMap", height = 600),
+                fluidRow(
+                    box(
+                        selectInput("choices", "Confirmed or Dead?", choices = c(CHOICE_CONF, CHOICE_DEAD), selected = CHOICE_CONF),
+                        uiOutput("WorldMapSlider")
+                    ),
+                    box(
+                        helpText("Checking country details by single click on that country."),
+                        uiOutput("WorldMapSelection"),
+                        checkboxInput("WorldMapLegend", "Show legend", TRUE)
+                    )
                 )
             ),
             # Second tab content
@@ -37,10 +40,12 @@ ui <- dashboardPage(
                 fluidRow(
                     box(
                         plotOutput("pois", height = 250),
-                        plotOutput("norm", height = 250)),
+                        plotOutput("norm", height = 250)
+                    ),
                     box(
                         title = "Controls",
-                        sliderInput("slider", "Number of observations:", 1, 100, 50))
+                        sliderInput("slider", "Number of observations:", 1, 100, 50)
+                    )
                 )
             )
         )

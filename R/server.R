@@ -33,7 +33,29 @@ RawDataConf <- getJHUCSSEDataset(UrlStrConf)
 RawDataDead <- getJHUCSSEDataset(UrlStrDead)
 RawDataRecv <- getJHUCSSEDataset(UrlStrRecv)
 
-arrondi<- function(x) 10^(ceiling(log10(x)))
+arrondi <- function(x) 10^(ceiling(log10(x)))
+
+getCountryPopup <- function(popupCtyName, popVarName, popupNum) {
+    if(popVarName %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
+        resCountryPopup <- paste0(
+            "<strong>Country: </strong>",
+            popupCtyName,
+            "<br><strong>",
+            popVarName,
+            ": </strong>",
+            popupNum,
+            " /100000")
+    } else {
+        resCountryPopup <- paste0(
+            "<strong>Country: </strong>",
+            popupCtyName,
+            "<br><strong>",
+            popVarName,
+            ": </strong>",
+            popupNum)
+    }
+    return(resCountryPopup)
+}
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
@@ -51,8 +73,8 @@ server <- function(input, output, session) {
     
     ## Get dataset
     dataArea <- reactive({
-        if(!is.null(input$choices)){
-            if(input$choices == CHOICE_CONF){
+        if(!is.null(input$choices)) {
+            if(input$choices == CHOICE_CONF) {
                 resData <- transformToGeoMapDataset(RawDataConf, WorldMapShape)
             } else {
                 resData <- transformToGeoMapDataset(RawDataDead, WorldMapShape)
@@ -70,7 +92,7 @@ server <- function(input, output, session) {
 
     ## Set World Map Slider
     output$WorldMapSlider <- renderUI({
-        if(is.null(input$variable)){
+        if(is.null(input$variable)) {
         } else {
             if(input$variable %in% c(VAR_TS_CNT_CONF_TTL, VAR_TS_RAT_CONF_TTL, VAR_TS_CNT_DEAD_TTL, VAR_TS_RAT_DEAD_TTL)) {
                 sliderInput(
@@ -111,27 +133,27 @@ server <- function(input, output, session) {
         }
     })
 
-    ## Set Legend
+    ## Set WorldMapLegend
     maxCNT <- reactive(max(dataArea()%>%select(-Pop)%>%select_if(is.numeric), na.rm = T))
     maxRAT <- reactive(max(dataArea()%>%select(-Pop)%>%select_if(is.numeric)%>%mutate_all(function(x) x/dataArea()$Pop*100000), na.rm = T))
-    palCNT <- reactive(colorNumeric(c("#FFFFFFFF" ,rev(inferno(256))), domain = c(0,log(arrondi(maxCNT())))))
-    palRAT <- reactive(colorNumeric(c("#FFFFFFFF" ,rev(inferno(256))), domain = c(0,log(arrondi(maxRAT())))))
+    palCNT <- reactive(colorNumeric(c("#FFFFFFFF", rev(inferno(256))), domain = c(0,log(arrondi(maxCNT())))))
+    palRAT <- reactive(colorNumeric(c("#FFFFFFFF", rev(inferno(256))), domain = c(0,log(arrondi(maxRAT())))))
 
     observe({
         if(is.null(input$variable)){
         } else {
             proxy <- leafletProxy("WorldMap", data = WorldMapShape)
             proxy %>% clearControls()
-            if (input$legend) {
+            if (input$WorldMapLegend) {
                 if(input$variable %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
                     proxy %>% addLegend(
                         position = "bottomright",
                         pal = palRAT(),
                         opacity = 1,
-                        bins = log(10^(seq(0,log10(arrondi(maxRAT())),0.5))),
+                        bins = log(10^(seq(0, log10(arrondi(maxRAT())), 0.5))),
                         value = log(1:10^(log10(arrondi(maxRAT())))),
                         data = log(1:10^(log10(arrondi(maxRAT())))),
-                        labFormat = labelFormat(transform = function(x) round(exp(x)), suffix = " /100 000")
+                        labFormat = labelFormat(transform = function(x) round(exp(x)), suffix = " /100000")
                     )
                 } else {
                     proxy %>% addLegend(
@@ -164,111 +186,103 @@ server <- function(input, output, session) {
         if(is.null(input$variable)){
         } else {
             if(input$variable %in% c(VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_TTL)) {
-                WorldMapShape2 <- merge(
+                WorldMapShapeOut <- merge(
                     WorldMapShape,
                     dataArea(),
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
-                country_popup <- paste0(
-                    "<strong>Country: </strong>",
-                    WorldMapShape2$NAME,
-                    "<br><strong>",
-                    "Total cases/population :",
-                    " </strong>",
-                    round(WorldMapShape2[[indicator1]]/WorldMapShape2$Pop*100000,2)," /100 000")
-                leafletProxy("WorldMap", data = WorldMapShape2)%>%
+                countryPopup <- getCountryPopup(
+                    WorldMapShapeOut$NAME,
+                    input$variable,
+                    round(WorldMapShapeOut[[indicator1]]/WorldMapShapeOut$Pop*100000,2)
+                )
+                leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
                 addPolygons(
-                    fillColor = palRAT()(log((WorldMapShape2[[indicator1]]/WorldMapShape2$Pop*100000)+1)),
+                    fillColor = palRAT()(log((WorldMapShapeOut[[indicator1]]/WorldMapShapeOut$Pop*100000)+1)),
                     layerId = ~NAME,
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     weight = 1,
-                    popup = country_popup)
+                    popup = countryPopup)
             } else if(input$variable %in% c(VAR_TS_CNT_CONF_TTL, VAR_TS_CNT_DEAD_TTL)) {
-                WorldMapShape2 <- merge(
+                WorldMapShapeOut <- merge(
                     WorldMapShape,
                     dataArea(),
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
-                country_popup <- paste0(
-                    "<strong>Country: </strong>",
-                    WorldMapShape2$NAME,
-                    "<br><strong>",
+                countryPopup <- getCountryPopup(
+                    WorldMapShapeOut$NAME,
                     input$variable,
-                    " </strong>",
-                    round(WorldMapShape2[[indicator1]],2))
-                leafletProxy("WorldMap", data = WorldMapShape2)%>%
+                    round(WorldMapShapeOut[[indicator1]], 2)
+                )
+                leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
                 addPolygons(
-                    fillColor = palCNT()(log((WorldMapShape2[[indicator1]])+1)),
+                    fillColor = palCNT()(log((WorldMapShapeOut[[indicator1]])+1)),
                     fillOpacity = 1,
                     layerId = ~NAME,
                     color = "#BDBDC3",
                     weight = 1,
-                    popup = country_popup)
+                    popup = countryPopup)
             } else if(input$variable %in% c(VAR_TS_CNT_CONF_NEW, VAR_TS_CNT_DEAD_NEW)) {
-                dataAreaSel <- dataArea()%>%select(Area, Pop)
+                dataAreaSel <- dataArea() %>% select(Area, Pop)
                 if(indicator2[1] == format.Date(min(daysDate)-1, "%m/%d/%y")) {
-                    dataAreaSel$ncases <- dataArea()[,indicator2[2]]
+                    dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]]
                 } else {
-                    dataAreaSel$ncases <- dataArea()[,indicator2[2]]-dataArea()[,indicator2[1]]
+                    dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]] - dataArea()[, indicator2[1]]
                 }
-                WorldMapShape2 <- merge(
+                WorldMapShapeOut <- merge(
                     WorldMapShape,
                     dataAreaSel,
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
-                country_popup <- paste0(
-                    "<strong>Country: </strong>",
-                    WorldMapShape2$NAME,
-                    "<br><strong>",
+                countryPopup <- getCountryPopup(
+                    WorldMapShapeOut$NAME,
                     input$variable,
-                    " </strong>",
-                    WorldMapShape2$ncases)
-                leafletProxy("WorldMap", data = WorldMapShape2)%>%
+                    WorldMapShapeOut$CALCNUM
+                )
+                leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
                 addPolygons(
-                    fillColor = palCNT()(log(WorldMapShape2$ncases+1)),
+                    fillColor = palCNT()(log(WorldMapShapeOut$CALCNUM+1)),
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     layerId = ~NAME,
                     weight = 1,
-                    popup = country_popup)
+                    popup = countryPopup)
             } else {
-                dataAreaSel <- dataArea()%>%select(Area, Pop)
+                dataAreaSel <- dataArea() %>% select(Area, Pop)
                 if(indicator2[1] == format.Date(min(daysDate)-1, "%m/%d/%y")) {
-                    dataAreaSel$ncases <- dataArea()[,indicator2[2]]
+                    dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]]
                 } else {
-                    dataAreaSel$ncases <- dataArea()[,indicator2[2]]-dataArea()[,indicator2[1]]
+                    dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]] - dataArea()[, indicator2[1]]
                 }
-                WorldMapShape2 <- merge(
+                dataAreaSel$CALCNUM <- round(dataAreaSel$CALCNUM/dataAreaSel$Pop*100000, 2)
+                WorldMapShapeOut <- merge(
                     WorldMapShape,
                     dataAreaSel,
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
-                country_popup <- paste0(
-                    "<strong>Country: </strong>",
-                    WorldMapShape2$NAME,
-                    "<br><strong>",
+                countryPopup <- getCountryPopup(
+                    WorldMapShapeOut$NAME,
                     input$variable,
-                    " </strong>",
-                    round(WorldMapShape2$ncases/WorldMapShape2$Pop*100000,2)," /100 000")
-                leafletProxy("WorldMap", data = WorldMapShape2)%>%
+                    WorldMapShapeOut$CALCNUM
+                )
+                leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
                 addPolygons(
-                    fillColor = palRAT()(log(WorldMapShape2$ncases/WorldMapShape2$Pop*100000+1)),
+                    fillColor = palRAT()(log(WorldMapShapeOut$CALCNUM/WorldMapShapeOut$Pop*100000+1)),
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     layerId = ~NAME,
                     weight = 1,
-                    popup = country_popup)
+                    popup = countryPopup)
             }
         }
     })
 
     #Top5<-reactive(unique(c(dataArea()$Area[order(dataArea()[,dim(dataArea())[2]]%>%unlist(),decreasing = T)][1:5], "France")))
-
     #print(head(WorldMapShape, 2))
 
     # Table Time Series

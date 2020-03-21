@@ -18,13 +18,14 @@ A file named WorldMapShape.RData will be generated.
 ## Instruction
 
 ```bash
-R -e "shiny::runApp('./R/app.R')"
+R -e "options(shiny.port = 8888);shiny::runApp('./R/app.R')"
+R -e "shiny::runGitHub('shiny_playground', 'weihuacern', subdir = 'R/')"
 ```
 
 ## TODO
 
 - Optimize World Map Code
 - Add Time Series Code
+- Dockerize
 - Publish
 - Blog
-
