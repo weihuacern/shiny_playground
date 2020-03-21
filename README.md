@@ -8,8 +8,8 @@
 
 ```bash
 cd data
-wget https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_countries.zip
-unzip ne_50m_admin_0_countries.zip -d ne_50m_admin_0_countries
+wget https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_sovereignty.zip
+unzip ne_50m_admin_0_sovereignty.zip -d ne_50m_admin_0_sovereignty
 Rscript WorldMapShapeDataGen.R
 ```
 

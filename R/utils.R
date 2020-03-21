@@ -38,13 +38,14 @@ transformToGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Gibraltar"] <- "United Kingdom"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="US"] <- "United States"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Saint Barthelemy"] <- "St-Barthélemy"
-    
+
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Faroe Islands"] <- "Faeroe Is."
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Bosnia and Herzegovina"] <- "Bosnia and Herz."
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Vatican City"] <- "Vatican"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Korea, South"] <- "South Korea"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Republic of Ireland"] <- "Ireland"
-    
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Saint Vincent and the Grenadines"] <- "St. Vin. and Gren."
+
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Gambia, The"] <- "Gambia"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Bahamas, The"] <- "Bahamas"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Congo (Kinshasa)"] <- "Congo"
@@ -91,6 +92,7 @@ transformToGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
 #head(df2, 4)
 #head(WorldMapShape, 1)
 #print(WorldMapShape$NAME)
+#print(WorldMapShape$POP_EST)
 #df <- transformToGeoMapDataset(df1, WorldMapShape)
 #head(df, 4)
 #max(df%>%select(-Pop)%>%select_if(is.numeric), na.rm = T)

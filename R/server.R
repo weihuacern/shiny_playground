@@ -35,25 +35,21 @@ RawDataRecv <- getJHUCSSEDataset(UrlStrRecv)
 
 arrondi <- function(x) 10^(ceiling(log10(x)))
 
-getCountryPopup <- function(popupCtyName, popVarName, popupNum) {
+getCountryPopup <- function(popupCtyName, popVarName, popupNum) {        
+    resCountryPopup <- paste0(
+        "<strong>Country/Region: </strong>",
+        popupCtyName,
+        "<br><strong>",
+        popVarName,
+        ": </strong>",
+        popupNum)
+
     if(popVarName %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
         resCountryPopup <- paste0(
-            "<strong>Country: </strong>",
-            popupCtyName,
-            "<br><strong>",
-            popVarName,
-            ": </strong>",
-            popupNum,
-            " /100000")
-    } else {
-        resCountryPopup <- paste0(
-            "<strong>Country: </strong>",
-            popupCtyName,
-            "<br><strong>",
-            popVarName,
-            ": </strong>",
-            popupNum)
+            resCountryPopup,
+            " /1000000")
     }
+
     return(resCountryPopup)
 }
 
@@ -135,7 +131,7 @@ server <- function(input, output, session) {
 
     ## Set WorldMapLegend
     maxCNT <- reactive(max(dataArea()%>%select(-Pop)%>%select_if(is.numeric), na.rm = T))
-    maxRAT <- reactive(max(dataArea()%>%select(-Pop)%>%select_if(is.numeric)%>%mutate_all(function(x) x/dataArea()$Pop*100000), na.rm = T))
+    maxRAT <- reactive(max(dataArea()%>%select(-Pop)%>%select_if(is.numeric)%>%mutate_all(function(x) x/dataArea()$Pop*1000000), na.rm = T))
     palCNT <- reactive(colorNumeric(c("#FFFFFFFF", rev(inferno(256))), domain = c(0,log(arrondi(maxCNT())))))
     palRAT <- reactive(colorNumeric(c("#FFFFFFFF", rev(inferno(256))), domain = c(0,log(arrondi(maxRAT())))))
 
@@ -153,7 +149,7 @@ server <- function(input, output, session) {
                         bins = log(10^(seq(0, log10(arrondi(maxRAT())), 0.5))),
                         value = log(1:10^(log10(arrondi(maxRAT())))),
                         data = log(1:10^(log10(arrondi(maxRAT())))),
-                        labFormat = labelFormat(transform = function(x) round(exp(x)), suffix = " /100000")
+                        labFormat = labelFormat(transform = function(x) round(exp(x)), suffix = " /1000000")
                     )
                 } else {
                     proxy %>% addLegend(
@@ -195,11 +191,11 @@ server <- function(input, output, session) {
                 countryPopup <- getCountryPopup(
                     WorldMapShapeOut$NAME,
                     input$variable,
-                    round(WorldMapShapeOut[[indicator1]]/WorldMapShapeOut$Pop*100000,2)
+                    round(WorldMapShapeOut[[indicator1]]/WorldMapShapeOut$Pop*1000000,2)
                 )
                 leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
                 addPolygons(
-                    fillColor = palRAT()(log((WorldMapShapeOut[[indicator1]]/WorldMapShapeOut$Pop*100000)+1)),
+                    fillColor = palRAT()(log((WorldMapShapeOut[[indicator1]]/WorldMapShapeOut$Pop*1000000)+1)),
                     layerId = ~NAME,
                     fillOpacity = 1,
                     color = "#BDBDC3",
@@ -258,7 +254,7 @@ server <- function(input, output, session) {
                 } else {
                     dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]] - dataArea()[, indicator2[1]]
                 }
-                dataAreaSel$CALCNUM <- round(dataAreaSel$CALCNUM/dataAreaSel$Pop*100000, 2)
+                dataAreaSel$CALCNUM <- round(dataAreaSel$CALCNUM/dataAreaSel$Pop*1000000, 2)
                 WorldMapShapeOut <- merge(
                     WorldMapShape,
                     dataAreaSel,
@@ -272,7 +268,7 @@ server <- function(input, output, session) {
                 )
                 leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
                 addPolygons(
-                    fillColor = palRAT()(log(WorldMapShapeOut$CALCNUM/WorldMapShapeOut$Pop*100000+1)),
+                    fillColor = palRAT()(log(WorldMapShapeOut$CALCNUM/WorldMapShapeOut$Pop*1000000+1)),
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     layerId = ~NAME,
