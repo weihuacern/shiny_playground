@@ -18,7 +18,7 @@ A file named WorldMapShape.RData will be generated.
 ## Instruction
 
 ```bash
-R -e "options(shiny.port = 8888);shiny::runApp('./R/app.R')"
+R -e "options(shiny.port = 1234);shiny::runApp('./R/app.R')"
 R -e "shiny::runGitHub('shiny_playground', 'weihuacern', subdir = 'R/')"
 ```
 

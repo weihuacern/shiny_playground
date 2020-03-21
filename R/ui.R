@@ -27,7 +27,7 @@ ui <- dashboardPage(
                         uiOutput("WorldMapSlider")
                     ),
                     box(
-                        helpText("Checking country details by single click on that country."),
+                        helpText("Checking Country/Region details by single click on the map."),
                         uiOutput("WorldMapSelection"),
                         checkboxInput("WorldMapLegend", "Show legend", TRUE)
                     )

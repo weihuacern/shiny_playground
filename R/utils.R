@@ -16,6 +16,7 @@ getJHUCSSEDataset <- function(urlStr) {
 # Object: WorldMapShape
 load("../data/WorldMapShape.RData")
 
+# TODO, to be removed
 getWIKIPopDataset <- function() {
     # https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population
     # Path hardcoded for now
@@ -25,45 +26,47 @@ getWIKIPopDataset <- function() {
 }
 
 transformToGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
+    # Align Country/Region Name to WorldMapShapedf$NAME
     JHUCSSEDf$`Country/Region`<-as.character(JHUCSSEDf$`Country/Region`)
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Macau"]<- "Macao"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Mainland China"]<- "China"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="South Korea"]<- "South Korea"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="North Macedonia"]<- "Macedonia"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Czech Republic"]<- "Czechia"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Dominican Republic"]<- "Dominican Rep."
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="UK"]<- "United Kingdom"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Gibraltar"]<- "United Kingdom"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="US"]<- "United States"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Saint Barthelemy"]<- "St-Barthélemy"
+    # TODO, need to move to this to China category
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Taiwan*"] <- "Taiwan"
+
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="North Macedonia"] <- "Macedonia"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Czech Republic"] <- "Czechia"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Dominican Republic"] <- "Dominican Rep."
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="UK"] <- "United Kingdom"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Gibraltar"] <- "United Kingdom"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="US"] <- "United States"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Saint Barthelemy"] <- "St-Barthélemy"
     
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Faroe Islands"]<- "Faeroe Is."
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Bosnia and Herzegovina"]<- "Bosnia and Herz."
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Vatican City"]<- "Vatican"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Korea, South"]<- "South Korea"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Republic of Ireland"]<- "Ireland"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Taiwan*"]<-"Taiwan"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Faroe Islands"] <- "Faeroe Is."
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Bosnia and Herzegovina"] <- "Bosnia and Herz."
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Vatican City"] <- "Vatican"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Korea, South"] <- "South Korea"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Republic of Ireland"] <- "Ireland"
     
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Congo (Kinshasa)"]<-"Congo"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Cote d'Ivoire"]<-"Côte d'Ivoire"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Reunion"]<-"France"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Martinique"]<-"France"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="French Guiana"]<-"France"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Holy See"]<-"Vatican"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Cayman Islands"]<-"Cayman Is."
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Guadeloupe"]<-"France"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Antigua and Barbuda"]<-"Antigua and Barb."
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Gambia, The"] <- "Gambia"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Bahamas, The"] <- "Bahamas"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Congo (Kinshasa)"] <- "Congo"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Cote d'Ivoire"] <- "Côte d'Ivoire"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Reunion"] <- "France"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Martinique"] <- "France"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="French Guiana"] <- "France"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Holy See"] <- "Vatican"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Cayman Islands"] <- "Cayman Is."
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Guadeloupe"] <- "France"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Antigua and Barbuda"] <- "Antigua and Barb."
     
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Curacao"]<-"Curaçao"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Guadeloupe"]<-"France"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="occupied Palestinian territory"]<-"Palestine"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Congo (Brazzaville)"]<-"Congo"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Equatorial Guinea"]<-"Guinea"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Central African Republic"]<-"Central African Rep."  
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Eswatini"]<-"eSwatini"
-    
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Curacao"] <- "Curaçao"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Guadeloupe"] <- "France"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="occupied Palestinian territory"] <- "Palestine"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Congo (Brazzaville)"] <- "Congo"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Equatorial Guinea"] <- "Guinea"
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Central African Republic"] <- "Central African Rep."  
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Eswatini"] <- "eSwatini"
+
     JHUCSSEDf$Area <- as.character(unique(WorldMapShapeDf$NAME)[charmatch(JHUCSSEDf$`Country/Region`,unique(WorldMapShapeDf$NAME))])
-    #print(JHUCSSEDf$`Country/Region`[is.na(JHUCSSEDf$Area)])
+    print(JHUCSSEDf$`Country/Region`[is.na(JHUCSSEDf$Area)])
     GeoMapDf <- JHUCSSEDf%>%dplyr::select(
         -`Province/State`,
         -Lat, -Long, 
@@ -82,11 +85,12 @@ transformToGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     return(GeoMapDf)
 }
 
-df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
+#df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
 #head(df1, 4)
 #df2 <- getWIKIPopDataset()
 #head(df2, 4)
 #head(WorldMapShape, 1)
-df <- transformToGeoMapDataset(df1, WorldMapShape)
-head(df, 4)
-max(df%>%select(-Pop)%>%select_if(is.numeric), na.rm = T)
+#print(WorldMapShape$NAME)
+#df <- transformToGeoMapDataset(df1, WorldMapShape)
+#head(df, 4)
+#max(df%>%select(-Pop)%>%select_if(is.numeric), na.rm = T)
