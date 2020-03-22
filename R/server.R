@@ -1,6 +1,6 @@
-library(viridis)
 library(leaflet)
 library(shiny)
+library(viridis)
 library(tidyverse)
 
 source("constants.R")
