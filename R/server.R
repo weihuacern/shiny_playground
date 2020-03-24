@@ -35,16 +35,123 @@ RawDataRecv <- getJHUCSSEDataset(UrlStrRecv)
 
 arrondi <- function(x) 10^(ceiling(log10(x)))
 
-getCountryPopup <- function(popupCtyName, popVarName, popupNum) {        
+getGeoMapSlider <- function(sliderVarName, sliderDateArr, geoMapType) {
+    day1tag <- "wmday1"
+    day2tag <- "wmday2"
+    if (geoMapType == WORLD_GEOMAP) {
+        day1tag <- "wmday1"
+        day2tag <- "wmday2"
+    } else if (geoMapType == CHN_GEOMAP){
+        day1tag <- "chnmday1"
+        day2tag <- "chnmday2"
+    } else if (geoMapType == USA_GEOMAP){
+        day1tag <- "usamday1"
+        day2tag <- "usamday2"
+    }
+
+    if(is.null(sliderVarName) | is.null(sliderDateArr)) {
+        return(sliderInput(
+            day1tag, "Day", min = as.Date("01/01/2020", "%m/%d/%y"), max = as.Date("03/01/2020", "%m/%d/%y"),
+            value = c(as.Date("03/01/2020", "%m/%d/%y")), animate = T, step = 1))
+    }
+    if(sliderVarName %in% c(
+        VAR_TS_CNT_CONF_TTL,
+        VAR_TS_RAT_CONF_TTL,
+        VAR_TS_CNT_DEAD_TTL,
+        VAR_TS_RAT_DEAD_TTL,
+        VAR_TS_CNT_RECV_TTL
+        )) {
+        return(sliderInput(
+            day1tag, "Day", min(sliderDateArr), max(sliderDateArr),
+            value = c(max(sliderDateArr)), animate = T, step = 1))
+    } else {
+        return(sliderInput(
+            day2tag, "Day", min(sliderDateArr), max(sliderDateArr),
+            value = c(max(sliderDateArr)-14, max(sliderDateArr)), animate = T, step = 1))
+    }
+}
+
+getGeoMapSelection <- function(selVarName, geoMapType) {
+    var1 <- VAR_TS_CNT_CONF_NEW
+    var2 <- VAR_TS_RAT_CONF_NEW
+    var3 <- VAR_TS_CNT_CONF_TTL
+    var4 <- VAR_TS_RAT_CONF_TTL
+    var5 <- VAR_TS_CNT_RECV_NEW
+    var6 <- VAR_TS_CNT_RECV_TTL
+
+    vartag <- "wmvar"
+    if(is.null(selVarName) | is.null(geoMapType)) {
+        return(radioButtons(
+            vartag,
+            choices = c(
+                var1,
+                var2,
+                var3,
+                var4),
+            label = "Indicator"))
+    }
+    if(geoMapType == WORLD_GEOMAP) {
+        vartag <- "wmvar"
+        if(selVarName == CHOICE_CONF){
+            return(radioButtons(
+                vartag,
+                choices = c(
+                    var1,
+                    var2,
+                    var3,
+                    var4),
+                label = "Indicator"))
+        } else if(selVarName == CHOICE_DEAD) {
+            return(radioButtons(
+                vartag,
+                choices = list(
+                    var1 <- VAR_TS_CNT_DEAD_NEW,
+                    var2 <- VAR_TS_RAT_DEAD_NEW,
+                    var3 <- VAR_TS_CNT_DEAD_TTL,
+                    var4 <- VAR_TS_RAT_DEAD_TTL),
+                label = "Indicator"))
+        }
+    } else {
+        if (geoMapType == CHN_GEOMAP) {
+            vartag <- "chnmvar"
+        } else {
+            vartag <- "usamvar"
+        }
+        if(selVarName == CHOICE_CONF){
+            return(radioButtons(
+                vartag,
+                choices = c(
+                    var1,
+                    var3),
+                label = "Indicator"))
+        } else if(selVarName == CHOICE_DEAD) {
+            return(radioButtons(
+                vartag,
+                choices = list(
+                    var1 <- VAR_TS_CNT_DEAD_NEW,
+                    var3 <- VAR_TS_CNT_DEAD_TTL),
+                label = "Indicator"))
+        } else {
+            return(radioButtons(
+                vartag,
+                choices = list(
+                    var1 <- VAR_TS_CNT_RECV_NEW,
+                    var3 <- VAR_TS_CNT_RECV_TTL),
+                label = "Indicator"))
+        }
+    }
+}
+
+getCountryPopup <- function(popupCtyName, popupVarName, popupNum) {
     resCountryPopup <- paste0(
         "<strong>Country/Region: </strong>",
         popupCtyName,
         "<br><strong>",
-        popVarName,
+        popupVarName,
         ": </strong>",
         popupNum)
 
-    if(popVarName %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
+    if(popupVarName %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
         resCountryPopup <- paste0(
             resCountryPopup,
             " /1000000")
@@ -55,87 +162,59 @@ getCountryPopup <- function(popupCtyName, popVarName, popupNum) {
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-    # Table GeoMap: WorldMap
-    output$WorldMap <- renderLeaflet({
-        leaflet(data = WorldMapShape) %>%
-        setView(0, 30, zoom = 3)
-    })
-    
-    ## Get dataset
-    dataArea <- reactive({
-        if(!is.null(input$choices)) {
-            if(input$choices == CHOICE_CONF) {
-                resData <- transformToGeoMapDataset(RawDataConf, WorldMapShape)
-            } else {
-                resData <- transformToGeoMapDataset(RawDataDead, WorldMapShape)
-            }
-            #head(resData, 2)
-            return(resData)
-        }
-    })
-
-    ## Derive date range
+    # Table GeoMap
+    ## Preparation for all GeoMaps
+    ### Derive date range
     stdDataset <- RawDataConf
     daysStr <- names(stdDataset%>%select(contains("/")))
     daysDate <- as.Date(daysStr, "%m/%d/%y")
     daysDate <- daysDate[!is.na(daysDate)]
 
-    ## Set World Map Slider
-    output$WorldMapSlider <- renderUI({
-        if(is.null(input$variable)) {
-        } else {
-            if(input$variable %in% c(VAR_TS_CNT_CONF_TTL, VAR_TS_RAT_CONF_TTL, VAR_TS_CNT_DEAD_TTL, VAR_TS_RAT_DEAD_TTL)) {
-                sliderInput(
-                    "day1", "Day", min(daysDate), max(daysDate), 
-                    value = c(max(daysDate)), animate = T, step = 1)
+    ## WorldMap
+    output$WorldMap <- renderLeaflet({
+        leaflet(data = WorldMapShape) %>%
+        setView(0, 30, zoom = 3)
+    })
+    
+    ### Get World Map dataset
+    worldMapArea <- reactive({
+        print("World Map Calculation...")
+        if(!is.null(input$wmcs)) {
+            if(input$wmcs == CHOICE_CONF) {
+                resData <- transformToWorldGeoMapDataset(RawDataConf, WorldMapShape)
+            } else if(input$wmcs == CHOICE_DEAD) {
+                resData <- transformToWorldGeoMapDataset(RawDataDead, WorldMapShape)
             } else {
-                sliderInput(
-                    "day2", "Day", min(daysDate), max(daysDate),
-                    value = c(max(daysDate)-14, max(daysDate)), animate = T, step = 1)
+                resData <- transformToWorldGeoMapDataset(RawDataRecv, WorldMapShape)
             }
+            return(resData)
         }
     })
 
-    ## Set World Map Selection
-    var1 <- VAR_TS_CNT_CONF_NEW
-    var2 <- VAR_TS_RAT_CONF_NEW
-    var3 <- VAR_TS_CNT_CONF_TTL
-    var4 <- VAR_TS_RAT_CONF_TTL
-    output$WorldMapSelection <- renderUI({
-        if(input$choices == CHOICE_CONF){
-            radioButtons(
-                "variable",
-                choices = c(
-                    var1,
-                    var2,
-                    var3,
-                    var4),
-                label = "Indicator")
-        } else {
-            radioButtons(
-                "variable",
-                choices = list(
-                    var1 <- VAR_TS_CNT_DEAD_NEW,
-                    var2 <- VAR_TS_RAT_DEAD_NEW,
-                    var3 <- VAR_TS_CNT_DEAD_TTL,
-                    var4 <- VAR_TS_RAT_DEAD_TTL),
-                label = "Indicator")
-        }
-    })
+    ### Set World Map Slider
+    worldMapSlider <- reactive(
+        getGeoMapSlider(input$wmvar, daysDate, WORLD_GEOMAP)
+    )
+    output$WorldMapSlider <- renderUI(worldMapSlider())
 
-    ## Set WorldMapLegend
-    maxCNT <- reactive(max(dataArea()%>%select(-Pop)%>%select_if(is.numeric), na.rm = T))
-    maxRAT <- reactive(max(dataArea()%>%select(-Pop)%>%select_if(is.numeric)%>%mutate_all(function(x) x/dataArea()$Pop*1000000), na.rm = T))
+    ### Set World Map Selection
+    worldMapSelection <- reactive(
+        getGeoMapSelection(input$wmcs, WORLD_GEOMAP)
+    )
+    output$WorldMapSelection <- renderUI(worldMapSelection())
+
+    ### Set WorldMapLegend
+    maxCNT <- reactive(max(worldMapArea()%>%select(-Pop)%>%select_if(is.numeric), na.rm = T))
+    maxRAT <- reactive(max(worldMapArea()%>%select(-Pop)%>%select_if(is.numeric)%>%mutate_all(function(x) x/worldMapArea()$Pop*1000000), na.rm = T))
     palCNT <- reactive(colorNumeric(c("#FFFFFFFF", rev(inferno(256))), domain = c(0,log(arrondi(maxCNT())))))
     palRAT <- reactive(colorNumeric(c("#FFFFFFFF", rev(inferno(256))), domain = c(0,log(arrondi(maxRAT())))))
-
     observe({
-        if(is.null(input$variable)){
+        if(is.null(input$wmvar)){
         } else {
             proxy <- leafletProxy("WorldMap", data = WorldMapShape)
             proxy %>% clearControls()
             if (input$WorldMapLegend) {
-                if(input$variable %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
+                if(input$wmvar %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
                     proxy %>% addLegend(
                         position = "bottomright",
                         pal = palRAT(),
@@ -160,31 +239,31 @@ server <- function(input, output, session) {
         }
     })
 
-    ## Set Color on World Map
+    ### Set Color on World Map
     observe({
-        if (!is.null(input$day1)) {
-            indicator1 <- format.Date(input$day1, "%m/%d/%y")
+        if (!is.null(input$wmday1)) {
+            indicator1 <- format.Date(input$wmday1, "%m/%d/%y")
         } else {
             indicator1 = format.Date(max(daysDate), "%m/%d/%y")
         }
-        if (!is.null(input$day2)) {
-            indicator2 <- format.Date(input$day2-c(1,0), "%m/%d/%y")
+        if (!is.null(input$wmday2)) {
+            indicator2 <- format.Date(input$wmday2-c(1,0), "%m/%d/%y")
         } else {
             indicator2 = format.Date(c(min(daysDate)-1, max(daysDate)), "%m/%d/%y")
         }
         
-        if(is.null(input$variable)){
+        if(is.null(input$wmvar)){
         } else {
-            if(input$variable %in% c(VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_TTL)) {
+            if(input$wmvar %in% c(VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_TTL)) {
                 WorldMapShapeOut <- merge(
                     WorldMapShape,
-                    dataArea(),
+                    worldMapArea(),
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
                     WorldMapShapeOut$NAME,
-                    input$variable,
+                    input$wmvar,
                     round(WorldMapShapeOut[[indicator1]]/WorldMapShapeOut$Pop*1000000,2)
                 )
                 leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
@@ -195,16 +274,16 @@ server <- function(input, output, session) {
                     color = "#BDBDC3",
                     weight = 1,
                     popup = countryPopup)
-            } else if(input$variable %in% c(VAR_TS_CNT_CONF_TTL, VAR_TS_CNT_DEAD_TTL)) {
+            } else if(input$wmvar %in% c(VAR_TS_CNT_CONF_TTL, VAR_TS_CNT_DEAD_TTL)) {
                 WorldMapShapeOut <- merge(
                     WorldMapShape,
-                    dataArea(),
+                    worldMapArea(),
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
                     WorldMapShapeOut$NAME,
-                    input$variable,
+                    input$wmvar,
                     round(WorldMapShapeOut[[indicator1]], 2)
                 )
                 leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
@@ -215,22 +294,22 @@ server <- function(input, output, session) {
                     color = "#BDBDC3",
                     weight = 1,
                     popup = countryPopup)
-            } else if(input$variable %in% c(VAR_TS_CNT_CONF_NEW, VAR_TS_CNT_DEAD_NEW)) {
-                dataAreaSel <- dataArea() %>% select(Area, Pop)
+            } else if(input$wmvar %in% c(VAR_TS_CNT_CONF_NEW, VAR_TS_CNT_DEAD_NEW)) {
+                worldMapAreaSel <- worldMapArea() %>% select(Area, Pop)
                 if(indicator2[1] == format.Date(min(daysDate)-1, "%m/%d/%y")) {
-                    dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]]
+                    worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]]
                 } else {
-                    dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]] - dataArea()[, indicator2[1]]
+                    worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
                 }
                 WorldMapShapeOut <- merge(
                     WorldMapShape,
-                    dataAreaSel,
+                    worldMapAreaSel,
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
                     WorldMapShapeOut$NAME,
-                    input$variable,
+                    input$wmvar,
                     WorldMapShapeOut$CALCNUM
                 )
                 leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
@@ -242,22 +321,22 @@ server <- function(input, output, session) {
                     weight = 1,
                     popup = countryPopup)
             } else {
-                dataAreaSel <- dataArea() %>% select(Area, Pop)
+                worldMapAreaSel <- worldMapArea() %>% select(Area, Pop)
                 if(indicator2[1] == format.Date(min(daysDate)-1, "%m/%d/%y")) {
-                    dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]]
+                    worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]]
                 } else {
-                    dataAreaSel$CALCNUM <- dataArea()[, indicator2[2]] - dataArea()[, indicator2[1]]
+                    worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
                 }
-                dataAreaSel$CALCNUM <- round(dataAreaSel$CALCNUM/dataAreaSel$Pop*1000000, 2)
+                worldMapAreaSel$CALCNUM <- round(worldMapAreaSel$CALCNUM/worldMapAreaSel$Pop*1000000, 2)
                 WorldMapShapeOut <- merge(
                     WorldMapShape,
-                    dataAreaSel,
+                    worldMapAreaSel,
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
                     WorldMapShapeOut$NAME,
-                    input$variable,
+                    input$wmvar,
                     WorldMapShapeOut$CALCNUM
                 )
                 leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
@@ -272,8 +351,74 @@ server <- function(input, output, session) {
         }
     })
 
-    #Top5<-reactive(unique(c(dataArea()$Area[order(dataArea()[,dim(dataArea())[2]]%>%unlist(),decreasing = T)][1:5], "France")))
+    #Top5<-reactive(unique(c(worldMapArea()$Area[order(worldMapArea()[,dim(worldMapArea())[2]]%>%unlist(),decreasing = T)][1:5], "France")))
     #print(head(WorldMapShape, 2))
+
+    ## CHNMap
+    output$CHNMap <- renderLeaflet({
+        leaflet(data = CHNMapShape) %>%
+        setView(0, 30, zoom = 3)
+    })
+    
+    ### Get CHN Map dataset
+    CHNMapArea <- reactive({
+        print("CHN Map Calculation...")
+        if(!is.null(input$chnmcs)) {
+            if(input$chnmcs == CHOICE_CONF) {
+                resData <- transformToCHNGeoMapDataset(RawDataConf, CHNMapShape)
+            } else if(input$chnmcs == CHOICE_DEAD) {
+                resData <- transformToCHNGeoMapDataset(RawDataDead, CHNMapShape)
+            } else {
+                resData <- transformToCHNGeoMapDataset(RawDataRecv, CHNMapShape)
+            }
+            return(resData)
+        }
+    })
+
+    ### Set CHN Slider
+    chnMapSlider <- reactive(
+        getGeoMapSlider(input$chnmvar, daysDate, CHN_GEOMAP)
+    )
+    output$CHNMapSlider <- renderUI(chnMapSlider())
+
+    ### Set CHN Map Selection
+    chnMapSelection <- reactive(
+        getGeoMapSelection(input$chnmcs, CHN_GEOMAP)
+    )
+    output$CHNMapSelection <- renderUI(chnMapSelection())
+
+    ## USAMap
+    output$USAMap <- renderLeaflet({
+        leaflet(data = USAMapShape) %>%
+        setView(0, 30, zoom = 3)
+    })
+    
+    ### Get USA Map dataset
+    USAMapArea <- reactive({
+        print("USA Map Calculation...")
+        if(!is.null(input$usamcs)) {
+            if(input$usamcs == CHOICE_CONF) {
+                resData <- transformToUSAGeoMapDataset(RawDataConf, USAMapShape)
+            } else if(input$usamcs == CHOICE_DEAD) {
+                resData <- transformToUSAGeoMapDataset(RawDataDead, USAMapShape)
+            } else {
+                resData <- transformToUSAGeoMapDataset(RawDataRecv, USAMapShape)
+            }
+            return(resData)
+        }
+    })
+
+    ### Set USA Slider
+    usaMapSlider <- reactive(
+        getGeoMapSlider(input$usamvar, daysDate, USA_GEOMAP)
+    )
+    output$USAMapSlider <- renderUI(usaMapSlider())
+
+    ### Set USA Map Selection
+    usaMapSelection <- reactive(
+        getGeoMapSelection(input$usamcs, USA_GEOMAP)
+    )
+    output$USAMapSelection <- renderUI(usaMapSelection())
 
     # Table Time Series
     statType = "pois"

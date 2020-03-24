@@ -2,9 +2,13 @@
 
 ## Data Source
 
-[COVID-19, Johns Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19)
+### COVID-19
 
-[World, GeoMap](https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/)
+- [COVID-19, Johns Hopkins CSSE](https://github.com/CSSEGISandData/COVID-19)
+- [World GeoMap](https://www.naturalearthdata.com/)
+- [Country GeoMap](https://www.diva-gis.org/)
+
+- To Generate world map shape data:
 
 ```bash
 cd data
@@ -14,6 +18,24 @@ Rscript WorldMapShapeDataGen.R
 ```
 
 A file named WorldMapShape.RData will be generated.
+
+- To generate country map shape data:
+
+```bash
+cd data
+wget http://biogeo.ucdavis.edu/data/diva/adm/CHN_adm.zip
+wget http://biogeo.ucdavis.edu/data/diva/adm/HKG_adm.zip
+wget http://biogeo.ucdavis.edu/data/diva/adm/MAC_adm.zip
+wget http://biogeo.ucdavis.edu/data/diva/adm/TWN_adm.zip
+unzip CHN_adm.zip -d CHN_adm
+unzip HKG_adm.zip -d HKG_adm
+unzip MAC_adm.zip -d MAC_adm
+unzip TWN_adm.zip -d TWN_adm
+Rscript CHNMapShapeDataGen.R
+wget http://biogeo.ucdavis.edu/data/diva/adm/USA_adm.zip
+unzip USA_adm.zip -d USA_adm
+Rscript USAMapShapeDataGen.R
+```
 
 ## Instruction
 
