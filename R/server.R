@@ -25,13 +25,12 @@ renderStatPlot <- function(statType, input) {
 }
 
 ## Load data into memory first, save network IO
-UrlStrConf = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
-UrlStrDead = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
-UrlStrRecv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
+
+UrlStrConf = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+UrlStrDead = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
 
 RawDataConf <- getJHUCSSEDataset(UrlStrConf)
 RawDataDead <- getJHUCSSEDataset(UrlStrDead)
-RawDataRecv <- getJHUCSSEDataset(UrlStrRecv)
 
 arrondi <- function(x) 10^(ceiling(log10(x)))
 
@@ -58,8 +57,7 @@ getGeoMapSlider <- function(sliderVarName, sliderDateArr, geoMapType) {
         VAR_TS_CNT_CONF_TTL,
         VAR_TS_RAT_CONF_TTL,
         VAR_TS_CNT_DEAD_TTL,
-        VAR_TS_RAT_DEAD_TTL,
-        VAR_TS_CNT_RECV_TTL
+        VAR_TS_RAT_DEAD_TTL
         )) {
         return(sliderInput(
             day1tag, "Day", min(sliderDateArr), max(sliderDateArr),
@@ -76,8 +74,6 @@ getGeoMapSelection <- function(selVarName, geoMapType) {
     var2 <- VAR_TS_RAT_CONF_NEW
     var3 <- VAR_TS_CNT_CONF_TTL
     var4 <- VAR_TS_RAT_CONF_TTL
-    var5 <- VAR_TS_CNT_RECV_NEW
-    var6 <- VAR_TS_CNT_RECV_TTL
 
     vartag <- "wmvar"
     if(is.null(selVarName) | is.null(geoMapType)) {
@@ -131,13 +127,6 @@ getGeoMapSelection <- function(selVarName, geoMapType) {
                     var1 <- VAR_TS_CNT_DEAD_NEW,
                     var3 <- VAR_TS_CNT_DEAD_TTL),
                 label = "Indicator"))
-        } else {
-            return(radioButtons(
-                vartag,
-                choices = list(
-                    var1 <- VAR_TS_CNT_RECV_NEW,
-                    var3 <- VAR_TS_CNT_RECV_TTL),
-                label = "Indicator"))
         }
     }
 }
@@ -184,8 +173,6 @@ server <- function(input, output, session) {
                 resData <- transformToWorldGeoMapDataset(RawDataConf, WorldMapShape)
             } else if(input$wmcs == CHOICE_DEAD) {
                 resData <- transformToWorldGeoMapDataset(RawDataDead, WorldMapShape)
-            } else {
-                resData <- transformToWorldGeoMapDataset(RawDataRecv, WorldMapShape)
             }
             return(resData)
         }
@@ -368,8 +355,6 @@ server <- function(input, output, session) {
                 resData <- transformToCHNGeoMapDataset(RawDataConf, CHNMapShape)
             } else if(input$chnmcs == CHOICE_DEAD) {
                 resData <- transformToCHNGeoMapDataset(RawDataDead, CHNMapShape)
-            } else {
-                resData <- transformToCHNGeoMapDataset(RawDataRecv, CHNMapShape)
             }
             return(resData)
         }
@@ -401,8 +386,6 @@ server <- function(input, output, session) {
                 resData <- transformToUSAGeoMapDataset(RawDataConf, USAMapShape)
             } else if(input$usamcs == CHOICE_DEAD) {
                 resData <- transformToUSAGeoMapDataset(RawDataDead, USAMapShape)
-            } else {
-                resData <- transformToUSAGeoMapDataset(RawDataRecv, USAMapShape)
             }
             return(resData)
         }

@@ -69,7 +69,7 @@ ui <- dashboardPage(
                         selectInput(
                             "chnmcs",
                             "Confirmed, Dead or Revovered?",
-                            choices = c(CHOICE_CONF, CHOICE_DEAD, CHOICE_RECV),
+                            choices = c(CHOICE_CONF, CHOICE_DEAD),
                             selected = CHOICE_CONF),
                         uiOutput("CHNMapSlider")
                     ),
@@ -89,7 +89,7 @@ ui <- dashboardPage(
                         selectInput(
                             "usamcs",
                             "Confirmed, Dead or Revovered?",
-                            choices = c(CHOICE_CONF, CHOICE_DEAD, CHOICE_RECV),
+                            choices = c(CHOICE_CONF, CHOICE_DEAD),
                             selected = CHOICE_CONF),
                         uiOutput("USAMapSlider")
                     ),

@@ -2,9 +2,8 @@ library(RCurl)
 library(tidyverse)
 
 getJHUCSSEDataset <- function(urlStr) {
-    # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv
-    # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv
-    # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv
+    # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv
+    # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv
     download <- getURL(urlStr)
     data <- read.csv(
         textConnection(download),
@@ -26,7 +25,6 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     # Asia
     ## TODO, need to move to this to China category
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Taiwan*"] <- "Taiwan"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="East Timor"] <- "Timor-Leste"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Korea, South"] <- "South Korea"
 
     # Europe
@@ -34,11 +32,8 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Czech Republic"] <- "Czechia"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Bosnia and Herzegovina"] <- "Bosnia and Herz."
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Holy See"] <- "Vatican"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Martinique"] <- "France"
 
     # Africa
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Gambia, The"] <- "Gambia"
-    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Bahamas, The"] <- "Bahamas"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Congo (Kinshasa)"] <- "Congo"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Congo (Brazzaville)"] <- "Dem. Rep. Congo"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Cote d'Ivoire"] <- "Côte d'Ivoire"
@@ -74,7 +69,7 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     return(GeoMapDf)
 }
 
-#df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
+#df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
 #head(df1, 4)
 #df2 <- getWIKIPopDataset()
 #head(df2, 4)
