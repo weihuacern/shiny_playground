@@ -131,6 +131,50 @@ getGeoMapSelection <- function(selVarName, geoMapType) {
     }
 }
 
+getLegendMax <- function(mapArea, legVarName, geoMapType) {
+    if(geoMapType == WORLD_GEOMAP) {
+        if(legVarName %in% c(
+            VAR_TS_CNT_CONF_NEW,
+            VAR_TS_CNT_CONF_TTL,
+            VAR_TS_CNT_DEAD_NEW,
+            VAR_TS_CNT_DEAD_TTL
+        )) {
+            return(
+                max(
+                    mapArea%>%select(-Pop)%>%select_if(is.numeric),
+                    na.rm = T
+                )
+            )
+        } else {
+            return(
+                max(
+                    mapArea%>%select(-Pop)%>%select_if(is.numeric)%>%mutate_all(function(x) x/mapArea$Pop*1000000),
+                    na.rm = T
+                )
+            )
+        }
+    } else {
+        return(
+            max(
+                mapArea%>%select_if(is.numeric),
+                na.rm = T
+            )
+        )
+    }
+}
+
+getLegendPal <- function(maxVal) {
+    return(
+        colorNumeric(
+            c(
+                "#FFFFFFFF",
+                rev(inferno(256))
+            ),
+            domain = c(0,log(arrondi(maxVal)))
+        )
+    )
+}
+
 getCountryPopup <- function(popupCtyName, popupVarName, popupNum) {
     resCountryPopup <- paste0(
         "<strong>Country/Region: </strong>",
@@ -191,10 +235,11 @@ server <- function(input, output, session) {
     output$WorldMapSelection <- renderUI(worldMapSelection())
 
     ### Set WorldMapLegend
-    maxCNT <- reactive(max(worldMapArea()%>%select(-Pop)%>%select_if(is.numeric), na.rm = T))
-    maxRAT <- reactive(max(worldMapArea()%>%select(-Pop)%>%select_if(is.numeric)%>%mutate_all(function(x) x/worldMapArea()$Pop*1000000), na.rm = T))
-    palCNT <- reactive(colorNumeric(c("#FFFFFFFF", rev(inferno(256))), domain = c(0,log(arrondi(maxCNT())))))
-    palRAT <- reactive(colorNumeric(c("#FFFFFFFF", rev(inferno(256))), domain = c(0,log(arrondi(maxRAT())))))
+    maxCNT <- reactive(getLegendMax(worldMapArea(), VAR_TS_CNT_CONF_NEW, WORLD_GEOMAP))
+    maxRAT <- reactive(getLegendMax(worldMapArea(), VAR_TS_RAT_CONF_NEW, WORLD_GEOMAP))
+    palCNT <- reactive(getLegendPal(maxCNT()))
+    palRAT <- reactive(getLegendPal(maxRAT()))
+
     observe({
         if(is.null(input$wmvar)){
         } else {
@@ -348,7 +393,7 @@ server <- function(input, output, session) {
     })
     
     ### Get CHN Map dataset
-    CHNMapArea <- reactive({
+    chnMapArea <- reactive({
         print("CHN Map Calculation...")
         if(!is.null(input$chnmcs)) {
             if(input$chnmcs == CHOICE_CONF) {
@@ -372,6 +417,94 @@ server <- function(input, output, session) {
     )
     output$CHNMapSelection <- renderUI(chnMapSelection())
 
+    ### Set CHNMapLegend
+    maxCHNMapCNT <- reactive(getLegendMax(chnMapArea(), VAR_TS_CNT_CONF_NEW, CHN_GEOMAP))
+    palCHNMapCNT <- reactive(getLegendPal(maxCHNMapCNT()))
+
+    observe({
+        if(is.null(input$chnmvar)){
+        } else {
+            proxy <- leafletProxy("CHNMap", data = CHNMapShape)
+            proxy %>% clearControls()
+            if (input$CHNMapLegend) {
+                proxy %>% addLegend(
+                    position = "bottomright",
+                    pal = palCHNMapCNT(),
+                    opacity = 1,
+                    bins = log(10^(0:log10(arrondi(maxCHNMapCNT())))),
+                    value = log(1:10^(log10(arrondi(maxCHNMapCNT())))),
+                    data = log(10^(0:log10(arrondi(maxCHNMapCNT())))),
+                    labFormat = labelFormat(transform = exp)
+                )
+            }
+        }
+    })
+
+    ### Set Color on CHN Map
+    observe({
+        if (!is.null(input$chnmday1)) {
+            indicator1 <- format.Date(input$chnmday1, "%m/%d/%y")
+        } else {
+            indicator1 = format.Date(max(daysDate), "%m/%d/%y")
+        }
+        if (!is.null(input$chnmday2)) {
+            indicator2 <- format.Date(input$chnmday2-c(1,0), "%m/%d/%y")
+        } else {
+            indicator2 = format.Date(c(min(daysDate)-1, max(daysDate)), "%m/%d/%y")
+        }
+
+        if(is.null(input$chnmvar)) {
+        } else {
+            if(input$chnmvar %in% c(VAR_TS_CNT_CONF_NEW, VAR_TS_CNT_DEAD_NEW)) {
+                chnMapAreaSel <- chnMapArea() %>% select(Area)
+                if(indicator2[1] == format.Date(min(daysDate)-1, "%m/%d/%y")) {
+                    chnMapAreaSel$CALCNUM <- chnMapArea()[, indicator2[2]]
+                } else {
+                    chnMapAreaSel$CALCNUM <- chnMapArea()[, indicator2[2]] - chnMapArea()[, indicator2[1]]
+                }
+                CHNMapShapeOut <- merge(
+                    CHNMapShape,
+                    chnMapAreaSel,
+                    by.x = "NAME_1",
+                    by.y = "Area",
+                    sort = FALSE)
+                countryPopup <- getCountryPopup(
+                    CHNMapShapeOut$`NAME_1`,
+                    input$chnmvar,
+                    CHNMapShapeOut$CALCNUM
+                )
+                leafletProxy("CHNMap", data = CHNMapShapeOut) %>%
+                addPolygons(
+                    fillColor = palCHNMapCNT()(log(CHNMapShapeOut$CALCNUM+1)),
+                    fillOpacity = 1,
+                    color = "#BDBDC3",
+                    layerId = ~`NAME_1`,
+                    weight = 1,
+                    popup = countryPopup)
+            } else {
+                CHNMapShapeOut <- merge(
+                    CHNMapShape,
+                    chnMapArea(),
+                    by.x = "NAME_1",
+                    by.y = "Area",
+                    sort = FALSE)
+                countryPopup <- getCountryPopup(
+                    CHNMapShapeOut$`NAME_1`,
+                    input$chnmvar,
+                    round(CHNMapShapeOut[[indicator1]], 2)
+                )
+                leafletProxy("CHNMap", data = CHNMapShapeOut) %>%
+                addPolygons(
+                    fillColor = palCHNMapCNT()(log((CHNMapShapeOut[[indicator1]])+1)),
+                    fillOpacity = 1,
+                    layerId = ~`NAME_1`,
+                    color = "#BDBDC3",
+                    weight = 1,
+                    popup = countryPopup)
+            }
+        }
+    })
+
     ## USAMap
     output$USAMap <- renderLeaflet({
         leaflet(data = USAMapShape) %>%
@@ -379,7 +512,7 @@ server <- function(input, output, session) {
     })
     
     ### Get USA Map dataset
-    USAMapArea <- reactive({
+    usaMapArea <- reactive({
         print("USA Map Calculation...")
         if(!is.null(input$usamcs)) {
             if(input$usamcs == CHOICE_CONF) {

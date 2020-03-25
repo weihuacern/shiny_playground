@@ -75,8 +75,8 @@ ui <- dashboardPage(
                     ),
                     box(
                         helpText("Checking Provinces details by single click on the map."),
-                        uiOutput("CHNMapSelection")
-                        #checkboxInput("CHNMapLegend", "Show legend", TRUE)
+                        uiOutput("CHNMapSelection"),
+                        checkboxInput("CHNMapLegend", "Show legend", TRUE)
                     )
                 )
             ),
