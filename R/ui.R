@@ -105,6 +105,7 @@ ui <- dashboardPage(
             tabItem(
                 tabName = "timeseries",
                 h2("COVID-19: Time Series"),
+                uiOutput("WorldTSSelection"),
                 fluidRow(
                     box(
                         h3("Confirmed Cases"),

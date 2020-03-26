@@ -48,6 +48,7 @@ install.packages("RCurl")
 install.packages("reshape")
 install.packages("shiny")
 install.packages("shinydashboard")
+install.packages("shinyWidgets")
 install.packages("tidyverse")
 install.packages("viridis")
 ```

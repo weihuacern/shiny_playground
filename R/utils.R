@@ -189,9 +189,6 @@ transformToWorldTSDataset <- function(JHUCSSEDf) {
 
 #df2 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
 #tsdata <- transformToWorldTSDataset(df2)
-
-#library(dygraphs)
-
-#dygraph(tsdata[, c("China", "Italy", "US", "Spain", "Germany")], main = "AAA") %>%
-#    dyOptions(stackedGraph = FALSE) %>%
-#    dyRangeSelector(height = 50)
+#print(names(tsdata))
+#print(typeof(names(tsdata)))
+#print(as.matrix(xts::last(tsdata)))

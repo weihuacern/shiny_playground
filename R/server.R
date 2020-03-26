@@ -1,6 +1,7 @@
 library(dygraphs)
 library(leaflet)
 library(shiny)
+library(shinyWidgets)
 library(viridis)
 library(tidyverse)
 
@@ -384,9 +385,6 @@ server <- function(input, output, session) {
         }
     })
 
-    #Top5<-reactive(unique(c(worldMapArea()$Area[order(worldMapArea()[,dim(worldMapArea())[2]]%>%unlist(),decreasing = T)][1:5], "France")))
-    #print(head(WorldMapShape, 2))
-
     ## CHNMap
     ### CHNMap frame with init coordinate
     output$CHNMap <- renderLeaflet({
@@ -542,19 +540,32 @@ server <- function(input, output, session) {
     ## World TS
     worldTSDataConf <- transformToWorldTSDataset(RawDataConf)
     worldTSDataDead <- transformToWorldTSDataset(RawDataDead)
-
-    output[[WORLD_TS_CONF_HTML_TAG]] <- renderDygraph({
-        dygraph(
-            worldTSDataConf[, c("China", "Italy", "US", "Spain", "Germany")]) %>%
-        dyOptions(stackedGraph = FALSE) %>%
-        dyRangeSelector(height = 50)
+    worldDefCountryList <- c("China", "US", "Italy", "Spain", "Germany")
+    output$WorldTSSelection <- renderUI({
+        prettyCheckboxGroup(
+            inputId = "wtssel",
+            label = "Country/Region to select:",
+            choices = names(worldTSDataConf),
+            selected = worldDefCountryList,
+            shape = "round", status = "danger",
+            fill = TRUE, inline = TRUE)
     })
 
-    output[[WORLD_TS_DEAD_HTML_TAG]] <- renderDygraph({
-        dygraph(
-            worldTSDataDead[, c("China", "Italy", "US", "Spain", "Germany")]) %>%
-        dyOptions(stackedGraph = FALSE) %>%
-        dyRangeSelector(height = 50)
+    observe({
+        output[[WORLD_TS_CONF_HTML_TAG]] <- renderDygraph({
+            dygraph(
+                worldTSDataConf[, input$wtssel]) %>%
+            dyOptions(stackedGraph = FALSE) %>%
+            dyRangeSelector(height = 50)
+        })
+        
+        output[[WORLD_TS_DEAD_HTML_TAG]] <- renderDygraph({
+            dygraph(
+                worldTSDataDead[, input$wtssel]) %>%
+            dyOptions(stackedGraph = FALSE) %>%
+            dyRangeSelector(height = 50)
+        })
     })
+
     #session$onSessionEnded(stopApp)
 }
