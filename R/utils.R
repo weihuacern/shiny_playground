@@ -1,5 +1,7 @@
 library(RCurl)
+library(reshape)
 library(tidyverse)
+library(xts)
 
 getJHUCSSEDataset <- function(urlStr) {
     # https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv
@@ -16,9 +18,6 @@ getJHUCSSEDataset <- function(urlStr) {
 load("../data/WorldMapShape.RData")
 
 transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
-    # Remove duplication, Province/State with Kitsap, WA and WA
-    JHUCSSEDf <- JHUCSSEDf[!grepl("," ,JHUCSSEDf$`Province/State`), ]
-
     # Align Country/Region Name to WorldMapShapedf$NAME
     JHUCSSEDf$`Country/Region` <- as.character(JHUCSSEDf$`Country/Region`)
 
@@ -26,6 +25,7 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     ## TODO, need to move to this to China category
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Taiwan*"] <- "Taiwan"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Korea, South"] <- "South Korea"
+    #JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="The West Bank and Gaza"] <- ""
 
     # Europe
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="North Macedonia"] <- "Macedonia"
@@ -46,6 +46,7 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Antigua and Barbuda"] <- "Antigua and Barb."
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="US"] <- "United States of America"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Saint Vincent and the Grenadines"] <- "St. Vin. and Gren."
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Saint Kitts and Nevis"] <- "St. Kitts and Nevis"
 
     JHUCSSEDf$Area <- as.character(unique(WorldMapShapeDf$NAME)[charmatch(JHUCSSEDf$`Country/Region`, unique(WorldMapShapeDf$NAME))])
 
@@ -77,8 +78,7 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
 #print(WorldMapShape$NAME)
 #print(WorldMapShape$POP_EST)
 #df <- transformToWorldGeoMapDataset(df1, WorldMapShape)
-#head(df, 4)
-#max(df%>%select(-Pop)%>%select_if(is.numeric), na.rm = T)
+#head(df[df$`Area`=="China",], 4)
 
 # Object: CHNMapShape.RData
 load("../data/CHNMapShape.RData")
@@ -145,7 +145,7 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, USAMapShapeDf) {
     
     JHUCSSEDf$Area <- as.character(unique(USAMapShapeDf$`NAME_1`)[charmatch(JHUCSSEDf$`Province/State`, unique(USAMapShapeDf$`NAME_1`))])
     
-    #print(JHUCSSEDf$`Province/State`[is.na(JHUCSSEDf$Area)])
+    #print(head(JHUCSSEDf, 4))
     
     GeoMapDf <- JHUCSSEDf%>%dplyr::select(
         -`Province/State`,
@@ -169,3 +169,29 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, USAMapShapeDf) {
 
 #df <- transformToUSAGeoMapDataset(df1, USAMapShape)
 #head(df, 4)
+
+transformToWorldTSDataset <- function(JHUCSSEDf) {
+    # Rename
+    names(JHUCSSEDf)[names(JHUCSSEDf) == "Country/Region"] <- "Area"
+
+    TSDf <- JHUCSSEDf%>%dplyr::select(
+        -`Province/State`,
+        -Lat, -Long)%>%group_by(Area)%>%summarise_each(sum)
+    TSDf$Area <- as.character(TSDf$Area)
+    TSDf <- melt(as.data.frame(TSDf), id=c("Area"))
+    names(TSDf)[names(TSDf) == "variable"] <- "Time"
+    names(TSDf)[names(TSDf) == "value"] <- "Value"
+    TSDf$Time <- as.Date(TSDf$Time, format = "%m/%d/%y")
+    TSDf <- cast(TSDf, Time ~ Area, value = "Value")
+    TSData <- xts(TSDf %>% select(-Time), order.by = TSDf$Time)
+    return(TSData)
+}
+
+#df2 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+#tsdata <- transformToWorldTSDataset(df2)
+
+#library(dygraphs)
+
+#dygraph(tsdata[, c("China", "Italy", "US", "Spain", "Germany")], main = "AAA") %>%
+#    dyOptions(stackedGraph = FALSE) %>%
+#    dyRangeSelector(height = 50)

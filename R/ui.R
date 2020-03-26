@@ -1,3 +1,4 @@
+library(dygraphs)
 library(leaflet)
 library(shinydashboard)
 
@@ -106,12 +107,12 @@ ui <- dashboardPage(
                 h2("COVID-19: Time Series"),
                 fluidRow(
                     box(
-                        plotOutput("pois", height = 250),
-                        plotOutput("norm", height = 250)
+                        h3("Confirmed Cases"),
+                        dygraphOutput(WORLD_TS_CONF_HTML_TAG)
                     ),
                     box(
-                        title = "Controls",
-                        sliderInput("slider", "Number of observations:", 1, 100, 50)
+                        h3("Dead Cases"),
+                        dygraphOutput(WORLD_TS_DEAD_HTML_TAG)
                     )
                 )
             )

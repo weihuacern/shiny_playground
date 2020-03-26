@@ -42,8 +42,10 @@ Rscript USAMapShapeDataGen.R
 ### Dependencies
 
 ```bash
-install.packages("RCurl")
+install.packages("dygraphs")
 install.packages("leaflet")
+install.packages("RCurl")
+install.packages("reshape")
 install.packages("shiny")
 install.packages("shinydashboard")
 install.packages("tidyverse")
@@ -59,8 +61,9 @@ R -e "shiny::runGitHub('shiny_playground', 'weihuacern', subdir = 'R/')"
 
 ## TODO
 
-- Optimize World Map Code
-- Add Time Series Code
+- Optimize World Map Code (Done)
+- Add Time Series Code (Done)
 - Dockerize
 - Publish
+- Time Series database
 - Blog

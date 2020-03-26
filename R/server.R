@@ -1,3 +1,4 @@
+library(dygraphs)
 library(leaflet)
 library(shiny)
 library(viridis)
@@ -247,7 +248,7 @@ server <- function(input, output, session) {
             proxy %>% clearControls()
             if (input$WorldMapLegend) {
                 if(input$wmvar %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
-                    proxy %>% addLegend(
+                    proxy %>% leaflet::addLegend(
                         position = "bottomright",
                         pal = palRAT(),
                         opacity = 1,
@@ -257,7 +258,7 @@ server <- function(input, output, session) {
                         labFormat = labelFormat(transform = function(x) round(exp(x)), suffix = " /1000000")
                     )
                 } else {
-                    proxy %>% addLegend(
+                    proxy %>% leaflet::addLegend(
                         position = "bottomright",
                         pal = palCNT(),
                         opacity = 1,
@@ -387,9 +388,10 @@ server <- function(input, output, session) {
     #print(head(WorldMapShape, 2))
 
     ## CHNMap
+    ### CHNMap frame with init coordinate
     output$CHNMap <- renderLeaflet({
         leaflet(data = CHNMapShape) %>%
-        setView(0, 30, zoom = 3)
+        setView(105, 35, zoom = 4)
     })
     
     ### Get CHN Map dataset
@@ -427,7 +429,7 @@ server <- function(input, output, session) {
             proxy <- leafletProxy("CHNMap", data = CHNMapShape)
             proxy %>% clearControls()
             if (input$CHNMapLegend) {
-                proxy %>% addLegend(
+                proxy %>% leaflet::addLegend(
                     position = "bottomright",
                     pal = palCHNMapCNT(),
                     opacity = 1,
@@ -537,10 +539,22 @@ server <- function(input, output, session) {
     output$USAMapSelection <- renderUI(usaMapSelection())
 
     # Table Time Series
-    statType = "pois"
-    output[[statType]] <- renderStatPlot(statType, input)
-    
-    statType = "norm"
-    output[[statType]] <- renderStatPlot(statType, input)
+    ## World TS
+    worldTSDataConf <- transformToWorldTSDataset(RawDataConf)
+    worldTSDataDead <- transformToWorldTSDataset(RawDataDead)
+
+    output[[WORLD_TS_CONF_HTML_TAG]] <- renderDygraph({
+        dygraph(
+            worldTSDataConf[, c("China", "Italy", "US", "Spain", "Germany")]) %>%
+        dyOptions(stackedGraph = FALSE) %>%
+        dyRangeSelector(height = 50)
+    })
+
+    output[[WORLD_TS_DEAD_HTML_TAG]] <- renderDygraph({
+        dygraph(
+            worldTSDataDead[, c("China", "Italy", "US", "Spain", "Germany")]) %>%
+        dyOptions(stackedGraph = FALSE) %>%
+        dyRangeSelector(height = 50)
+    })
     #session$onSessionEnded(stopApp)
 }
