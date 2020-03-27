@@ -1,3 +1,4 @@
+library(DT)
 library(dygraphs)
 library(leaflet)
 library(shiny)
@@ -197,6 +198,43 @@ getCountryPopup <- function(popupCtyName, popupVarName, popupNum) {
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+    # Table Table View
+    worldTableData <- transformToWorldTableDataset(RawDataConf, RawDataDead)
+    output[[WORLD_TABLE_HTML_TAG]] <- DT::renderDataTable({
+        DT::datatable(worldTableData)
+    })
+
+    # Table Time Series
+    ## World TS
+    worldTSDataConf <- transformToWorldTSDataset(RawDataConf)
+    worldTSDataDead <- transformToWorldTSDataset(RawDataDead)
+    worldDefCountryList <- c("China", "US", "Italy", "Spain", "Germany")
+    output$WorldTSSelection <- renderUI({
+        prettyCheckboxGroup(
+            inputId = "wtssel",
+            label = "Country/Region to select:",
+            choices = names(worldTSDataConf),
+            selected = worldDefCountryList,
+            shape = "round", status = "info",
+            fill = TRUE, inline = TRUE)
+    })
+
+    observe({
+        output[[WORLD_TS_CONF_HTML_TAG]] <- renderDygraph({
+            dygraph(
+                worldTSDataConf[, input$wtssel]) %>%
+            dyOptions(stackedGraph = TRUE) %>%
+            dyRangeSelector(height = 50)
+        })
+
+        output[[WORLD_TS_DEAD_HTML_TAG]] <- renderDygraph({
+            dygraph(
+                worldTSDataDead[, input$wtssel]) %>%
+            dyOptions(stackedGraph = TRUE) %>%
+            dyRangeSelector(height = 50)
+        })
+    })
+
     # Table GeoMap
     ## Preparation for all GeoMaps
     ### Derive date range
@@ -535,37 +573,6 @@ server <- function(input, output, session) {
         getGeoMapSelection(input$usamcs, USA_GEOMAP)
     )
     output$USAMapSelection <- renderUI(usaMapSelection())
-
-    # Table Time Series
-    ## World TS
-    worldTSDataConf <- transformToWorldTSDataset(RawDataConf)
-    worldTSDataDead <- transformToWorldTSDataset(RawDataDead)
-    worldDefCountryList <- c("China", "US", "Italy", "Spain", "Germany")
-    output$WorldTSSelection <- renderUI({
-        prettyCheckboxGroup(
-            inputId = "wtssel",
-            label = "Country/Region to select:",
-            choices = names(worldTSDataConf),
-            selected = worldDefCountryList,
-            shape = "round", status = "danger",
-            fill = TRUE, inline = TRUE)
-    })
-
-    observe({
-        output[[WORLD_TS_CONF_HTML_TAG]] <- renderDygraph({
-            dygraph(
-                worldTSDataConf[, input$wtssel]) %>%
-            dyOptions(stackedGraph = FALSE) %>%
-            dyRangeSelector(height = 50)
-        })
-        
-        output[[WORLD_TS_DEAD_HTML_TAG]] <- renderDygraph({
-            dygraph(
-                worldTSDataDead[, input$wtssel]) %>%
-            dyOptions(stackedGraph = FALSE) %>%
-            dyRangeSelector(height = 50)
-        })
-    })
 
     #session$onSessionEnded(stopApp)
 }

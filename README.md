@@ -42,6 +42,7 @@ Rscript USAMapShapeDataGen.R
 ### Dependencies
 
 ```bash
+install.packages("DT")
 install.packages("dygraphs")
 install.packages("leaflet")
 install.packages("RCurl")

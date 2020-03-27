@@ -10,9 +10,78 @@ getJHUCSSEDataset <- function(urlStr) {
     data <- read.csv(
         textConnection(download),
         check.names = F)
-    head(data, 4)
     return(data)
 }
+
+transformToWorldTableDataset <- function(JHUCSSEConfDf, JHUCSSEDeadDf) {
+    names(JHUCSSEConfDf)[names(JHUCSSEConfDf) == "Country/Region"] <- "Area"
+    names(JHUCSSEDeadDf)[names(JHUCSSEDeadDf) == "Country/Region"] <- "Area"
+    # Latest date and second latest date
+    latestDate <- (rev(names(JHUCSSEConfDf))[1])
+    secondLatestDate <- (rev(names(JHUCSSEConfDf))[2])
+
+    TableConfList <- JHUCSSEConfDf%>%dplyr::select(
+        -`Province/State`,
+        -Lat, -Long)%>%
+        group_by(Area)%>%
+        summarise_each(sum)%>%
+        arrange(desc(!!sym(latestDate)))
+    TableConfList$Area <- as.character(TableConfList$Area)
+    ConfVars <- c(Area = "Area", ConfCnt = latestDate, TmpConfCnt = secondLatestDate)
+    TableConfList <- select(TableConfList, !!ConfVars)
+    TableConfList <- mutate(TableConfList, NewConfCnt = ConfCnt - TmpConfCnt)
+    TableConfList$Area <- as.character(TableConfList$Area)
+
+    TableDeadList <- JHUCSSEDeadDf%>%dplyr::select(
+        -`Province/State`,
+        -Lat, -Long)%>%group_by(Area)%>%summarise_each(sum)%>%arrange(desc(!!sym(latestDate)))
+    TableDeadList$Area <- as.character(TableDeadList$Area)
+    DeadVars <- c(Area = "Area", DeadCnt = latestDate, TmpDeadCnt = secondLatestDate)
+    TableDeadList <- select(TableDeadList, !!DeadVars)
+    TableDeadList <- mutate(TableDeadList, NewDeadCnt = DeadCnt - TmpDeadCnt)
+    TableDeadList <- TableDeadList%>%dplyr::select(Area, DeadCnt, NewDeadCnt)
+    TableDeadList$Area <- as.character(TableDeadList$Area)
+
+    TableDf <- left_join(
+        data.frame(Area = TableConfList$Area, ConfCnt = TableConfList$ConfCnt, NewConfCnt = TableConfList$NewConfCnt),
+        TableDeadList
+    )
+    
+    TableDf <- TableDf%>%dplyr::rename(
+        "Confirmed Cases" = ConfCnt,
+        "New Confirmed Cases" = NewConfCnt,
+        "Dead Cases" = DeadCnt,
+        "New Dead Cases" = NewDeadCnt
+    )
+    return(TableDf)
+}
+
+#df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+#df2 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
+#tabdata <- transformToWorldTableDataset(df1, df2)
+
+transformToWorldTSDataset <- function(JHUCSSEDf) {
+    # Rename
+    names(JHUCSSEDf)[names(JHUCSSEDf) == "Country/Region"] <- "Area"
+
+    TSDf <- JHUCSSEDf%>%dplyr::select(
+        -`Province/State`,
+        -Lat, -Long)%>%group_by(Area)%>%summarise_each(sum)
+    TSDf$Area <- as.character(TSDf$Area)
+    TSDf <- melt(as.data.frame(TSDf), id=c("Area"))
+    names(TSDf)[names(TSDf) == "variable"] <- "Time"
+    names(TSDf)[names(TSDf) == "value"] <- "Value"
+    TSDf$Time <- as.Date(TSDf$Time, format = "%m/%d/%y")
+    TSDf <- cast(TSDf, Time ~ Area, value = "Value")
+    TSData <- xts(TSDf %>% select(-Time), order.by = TSDf$Time)
+    return(TSData)
+}
+
+#df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+#tsdata <- transformToWorldTSDataset(df1)
+#print(names(tsdata))
+#print(typeof(names(tsdata)))
+#print(as.matrix(xts::last(tsdata)))
 
 # Object: WorldMapShape
 load("../data/WorldMapShape.RData")
@@ -169,26 +238,3 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, USAMapShapeDf) {
 
 #df <- transformToUSAGeoMapDataset(df1, USAMapShape)
 #head(df, 4)
-
-transformToWorldTSDataset <- function(JHUCSSEDf) {
-    # Rename
-    names(JHUCSSEDf)[names(JHUCSSEDf) == "Country/Region"] <- "Area"
-
-    TSDf <- JHUCSSEDf%>%dplyr::select(
-        -`Province/State`,
-        -Lat, -Long)%>%group_by(Area)%>%summarise_each(sum)
-    TSDf$Area <- as.character(TSDf$Area)
-    TSDf <- melt(as.data.frame(TSDf), id=c("Area"))
-    names(TSDf)[names(TSDf) == "variable"] <- "Time"
-    names(TSDf)[names(TSDf) == "value"] <- "Value"
-    TSDf$Time <- as.Date(TSDf$Time, format = "%m/%d/%y")
-    TSDf <- cast(TSDf, Time ~ Area, value = "Value")
-    TSData <- xts(TSDf %>% select(-Time), order.by = TSDf$Time)
-    return(TSData)
-}
-
-#df2 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
-#tsdata <- transformToWorldTSDataset(df2)
-#print(names(tsdata))
-#print(typeof(names(tsdata)))
-#print(as.matrix(xts::last(tsdata)))

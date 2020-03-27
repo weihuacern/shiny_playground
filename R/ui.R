@@ -1,3 +1,4 @@
+library(DT)
 library(dygraphs)
 library(leaflet)
 library(shinydashboard)
@@ -11,36 +12,93 @@ ui <- dashboardPage(
     dashboardSidebar(
         sidebarMenu(
             menuItem(
+                "Table View",
+                icon = icon("th"),
+                startExpended = TRUE,
+                menuSubItem(
+                    'World',
+                    tabName = 'world-table',
+                    icon = icon('table')
+                ),
+                menuSubItem(
+                    'China',
+                    tabName = 'chn-table',
+                    icon = icon('table')
+                ),
+                menuSubItem(
+                    'United States of America',
+                    tabName = 'usa-table',
+                    icon = icon('table')
+                )
+            ),
+            menuItem(
+                "Time Series",
+                icon = icon("th"),
+                startExpended = TRUE,
+                menuSubItem(
+                    'World',
+                    tabName = 'world-ts',
+                    icon = icon('line-chart')
+                ),
+                menuSubItem(
+                    'China',
+                    tabName = 'chn-ts',
+                    icon = icon('line-chart')
+                ),
+                menuSubItem(
+                    'United States of America',
+                    tabName = 'usa-ts',
+                    icon = icon('line-chart')
+                )
+            ),
+            menuItem(
                 "GeoMap",
                 icon = icon("th"),
                 startExpended = TRUE,
                 menuSubItem(
                     'World',
                     tabName = 'world-geomap',
-                    icon = icon('line-chart')
+                    icon = icon('map')
                 ),
                 menuSubItem(
                     'China',
                     tabName = 'chn-geomap',
-                    icon = icon('line-chart')
+                    icon = icon('map')
                 ),
                 menuSubItem(
                     'United States of America',
                     tabName = 'usa-geomap',
-                    icon = icon('line-chart')
+                    icon = icon('map')
                 )
-            ),
-            menuItem(
-                "Time Series",
-                tabName = "timeseries",
-                icon = icon("bar-chart-o")
             )
         )
     ),
     ## Body content
     dashboardBody(
         tabItems(
-            # First tab content
+            # Table, World
+            tabItem(
+                tabName = "world-table",
+                h2("COVID-19: World Table"),
+                DT::dataTableOutput(WORLD_TABLE_HTML_TAG)
+            ),
+            # Time series, World
+            tabItem(
+                tabName = "world-ts",
+                h2("COVID-19: World Time Series"),
+                uiOutput("WorldTSSelection"),
+                fluidRow(
+                    box(
+                        h3("Confirmed Cases"),
+                        dygraphOutput(WORLD_TS_CONF_HTML_TAG)
+                    ),
+                    box(
+                        h3("Dead Cases"),
+                        dygraphOutput(WORLD_TS_DEAD_HTML_TAG)
+                    )
+                )
+            ),
+            # Geomap, World
             tabItem(
                 tabName = "world-geomap",
                 h2("COVID-19: World Map"),
@@ -61,6 +119,7 @@ ui <- dashboardPage(
                     )
                 )
             ),
+            # Geomap, CHN
             tabItem(
                 tabName = "chn-geomap",
                 h2("COVID-19: China Map"),
@@ -81,6 +140,7 @@ ui <- dashboardPage(
                     )
                 )
             ),
+            # Geomap, USA
             tabItem(
                 tabName = "usa-geomap",
                 h2("COVID-19: United States of America Map"),
@@ -98,22 +158,6 @@ ui <- dashboardPage(
                         helpText("Checking States details by single click on the map."),
                         uiOutput("USAMapSelection")
                         #checkboxInput("USAMapLegend", "Show legend", TRUE)
-                    )
-                )
-            ),
-            # Second tab content
-            tabItem(
-                tabName = "timeseries",
-                h2("COVID-19: Time Series"),
-                uiOutput("WorldTSSelection"),
-                fluidRow(
-                    box(
-                        h3("Confirmed Cases"),
-                        dygraphOutput(WORLD_TS_CONF_HTML_TAG)
-                    ),
-                    box(
-                        h3("Dead Cases"),
-                        dygraphOutput(WORLD_TS_DEAD_HTML_TAG)
                     )
                 )
             )
