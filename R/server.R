@@ -208,7 +208,7 @@ server <- function(input, output, session) {
     ## World TS
     worldTSDataConf <- transformToWorldTSDataset(RawDataConf)
     worldTSDataDead <- transformToWorldTSDataset(RawDataDead)
-    worldDefCountryList <- c("China", "US", "Italy", "Spain", "Germany")
+    worldDefCountryList <- c("US", "Italy", "Spain", "China", "Germany", "France")
     output$WorldTSSelection <- renderUI({
         prettyCheckboxGroup(
             inputId = "wtssel",
@@ -223,14 +223,14 @@ server <- function(input, output, session) {
         output[[WORLD_TS_CONF_HTML_TAG]] <- renderDygraph({
             dygraph(
                 worldTSDataConf[, input$wtssel]) %>%
-            dyOptions(stackedGraph = TRUE) %>%
+            dyOptions(stackedGraph = FALSE) %>%
             dyRangeSelector(height = 50)
         })
 
         output[[WORLD_TS_DEAD_HTML_TAG]] <- renderDygraph({
             dygraph(
                 worldTSDataDead[, input$wtssel]) %>%
-            dyOptions(stackedGraph = TRUE) %>%
+            dyOptions(stackedGraph = FALSE) %>%
             dyRangeSelector(height = 50)
         })
     })

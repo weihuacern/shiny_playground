@@ -95,6 +95,7 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Taiwan*"] <- "Taiwan"
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Korea, South"] <- "South Korea"
     #JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="The West Bank and Gaza"] <- ""
+    JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="Burma"] <- "Myanmar"
 
     # Europe
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region`=="North Macedonia"] <- "Macedonia"
