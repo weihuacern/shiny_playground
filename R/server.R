@@ -11,7 +11,7 @@ source("utils.R")
 
 renderStatPlot <- function(statType, input) {
     set.seed(435)
-    
+
     if (all(statType == "pois")) {
         histdata <- rpois(5000, lambda=5)
         histtitle <- "Possion Distribution"
@@ -19,7 +19,7 @@ renderStatPlot <- function(statType, input) {
         histdata <- rnorm(5000)
         histtitle <- "Normal Distribution"
     }
-  
+
     res <- renderPlot({
         data <- histdata[seq_len(input$slider)]
         hist(data, main=histtitle)
@@ -38,7 +38,7 @@ UrlStrDead = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/c
 RawDataConf <- getJHUCSSEDataset(UrlStrConf)
 RawDataDead <- getJHUCSSEDataset(UrlStrDead)
 
-arrondi <- function(x) 10^(ceiling(log10(x)))
+arrondi <- function(x) 10^ (ceiling(log10(x)))
 
 getGeoMapSlider <- function(sliderVarName, sliderDateArr, geoMapType) {
     day1tag <- "wmday1"
@@ -54,12 +54,13 @@ getGeoMapSlider <- function(sliderVarName, sliderDateArr, geoMapType) {
         day2tag <- "usamday2"
     }
 
-    if(is.null(sliderVarName) | is.null(sliderDateArr)) {
+    if (is.null(sliderVarName) | is.null(sliderDateArr)) {
         return(sliderInput(
             day1tag, "Day", min = as.Date("01/01/2020", "%m/%d/%y"), max = as.Date("03/01/2020", "%m/%d/%y"),
             value = c(as.Date("03/01/2020", "%m/%d/%y")), animate = T, step = 1))
     }
-    if(sliderVarName %in% c(
+
+    if (sliderVarName %in% c(
         VAR_TS_CNT_CONF_TTL,
         VAR_TS_RAT_CONF_TTL,
         VAR_TS_CNT_DEAD_TTL,
@@ -147,14 +148,17 @@ getLegendMax <- function(mapArea, legVarName, geoMapType) {
         )) {
             return(
                 max(
-                    mapArea%>%select(-Pop)%>%select_if(is.numeric),
+                    mapArea %>% select(-Pop) %>% select_if(is.numeric),
                     na.rm = T
                 )
             )
         } else {
             return(
                 max(
-                    mapArea%>%select(-Pop)%>%select_if(is.numeric)%>%mutate_all(function(x) x/mapArea$Pop*1000000),
+                    mapArea %>%
+                    select(-Pop) %>%
+                    select_if(is.numeric) %>%
+                    mutate_all(function(x) x / mapArea$Pop * 1000000),
                     na.rm = T
                 )
             )
@@ -162,7 +166,7 @@ getLegendMax <- function(mapArea, legVarName, geoMapType) {
     } else {
         return(
             max(
-                mapArea%>%select_if(is.numeric),
+                mapArea %>% select_if(is.numeric),
                 na.rm = T
             )
         )
@@ -176,7 +180,7 @@ getLegendPal <- function(maxVal) {
                 "#FFFFFFFF",
                 rev(inferno(256))
             ),
-            domain = c(0,log(arrondi(maxVal)))
+            domain = c(0, log(arrondi(maxVal)))
         )
     )
 }
@@ -242,7 +246,7 @@ server <- function(input, output, session) {
     ## Preparation for all GeoMaps
     ### Derive date range
     stdDataset <- RawDataConf
-    daysStr <- names(stdDataset%>%select(contains("/")))
+    daysStr <- names(stdDataset %>% select(contains("/")))
     daysDate <- as.Date(daysStr, "%m/%d/%y")
     daysDate <- daysDate[!is.na(daysDate)]
 
@@ -251,7 +255,7 @@ server <- function(input, output, session) {
         leaflet(data = WorldMapShape) %>%
         setView(0, 30, zoom = 3)
     })
-    
+
     ### Get World Map dataset
     worldMapArea <- reactive({
         print("World Map Calculation...")
@@ -278,10 +282,10 @@ server <- function(input, output, session) {
     output$WorldMapSelection <- renderUI(worldMapSelection())
 
     ### Set WorldMapLegend
-    maxCNT <- reactive(getLegendMax(worldMapArea(), VAR_TS_CNT_CONF_NEW, WORLD_GEOMAP))
-    maxRAT <- reactive(getLegendMax(worldMapArea(), VAR_TS_RAT_CONF_NEW, WORLD_GEOMAP))
-    palCNT <- reactive(getLegendPal(maxCNT()))
-    palRAT <- reactive(getLegendPal(maxRAT()))
+    maxCNT <- shiny::reactive(getLegendMax(worldMapArea(), VAR_TS_CNT_CONF_NEW, WORLD_GEOMAP))
+    maxRAT <- shiny::reactive(getLegendMax(worldMapArea(), VAR_TS_RAT_CONF_NEW, WORLD_GEOMAP))
+    palCNT <- shiny::reactive(getLegendPal(maxCNT()))
+    palRAT <- shiny::reactive(getLegendPal(maxRAT()))
 
     observe({
         if(is.null(input$wmvar)){
@@ -294,9 +298,9 @@ server <- function(input, output, session) {
                         position = "bottomright",
                         pal = palRAT(),
                         opacity = 1,
-                        bins = log(10^(seq(0, log10(arrondi(maxRAT())), 0.5))),
-                        value = log(1:10^(log10(arrondi(maxRAT())))),
-                        data = log(1:10^(log10(arrondi(maxRAT())))),
+                        bins = log(10^ (seq(0, log10(arrondi(maxRAT())), 0.5))),
+                        value = log(1:10^ (log10(arrondi(maxRAT())))),
+                        data = log(1:10^ (log10(arrondi(maxRAT())))),
                         labFormat = labelFormat(transform = function(x) round(exp(x)), suffix = " /1000000")
                     )
                 } else {
@@ -304,9 +308,9 @@ server <- function(input, output, session) {
                         position = "bottomright",
                         pal = palCNT(),
                         opacity = 1,
-                        bins = log(10^(0:log10(arrondi(maxCNT())))),
-                        value = log(1:10^(log10(arrondi(maxCNT())))),
-                        data = log(10^(0:log10(arrondi(maxCNT())))),
+                        bins = log(10^ (0:log10(arrondi(maxCNT())))),
+                        value = log(1:10^ (log10(arrondi(maxCNT())))),
+                        data = log(10^ (0:log10(arrondi(maxCNT())))),
                         labFormat = labelFormat(transform = exp)
                     )
                 }
@@ -322,12 +326,12 @@ server <- function(input, output, session) {
             indicator1 = format.Date(max(daysDate), "%m/%d/%y")
         }
         if (!is.null(input$wmday2)) {
-            indicator2 <- format.Date(input$wmday2-c(1,0), "%m/%d/%y")
+            indicator2 <- format.Date(input$wmday2 - c(1, 0), "%m/%d/%y")
         } else {
-            indicator2 = format.Date(c(min(daysDate)-1, max(daysDate)), "%m/%d/%y")
+            indicator2 = format.Date(c(min(daysDate) - 1, max(daysDate)), "%m/%d/%y")
         }
-        
-        if(is.null(input$wmvar)){
+
+        if (is.null(input$wmvar)) {
         } else {
             if(input$wmvar %in% c(VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_TTL)) {
                 WorldMapShapeOut <- merge(
@@ -371,7 +375,7 @@ server <- function(input, output, session) {
                     popup = countryPopup)
             } else if(input$wmvar %in% c(VAR_TS_CNT_CONF_NEW, VAR_TS_CNT_DEAD_NEW)) {
                 worldMapAreaSel <- worldMapArea() %>% select(Area, Pop)
-                if(indicator2[1] == format.Date(min(daysDate)-1, "%m/%d/%y")) {
+                if(indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]]
                 } else {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
@@ -389,7 +393,7 @@ server <- function(input, output, session) {
                 )
                 leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
                 addPolygons(
-                    fillColor = palCNT()(log(WorldMapShapeOut$CALCNUM+1)),
+                    fillColor = palCNT()(log(WorldMapShapeOut$CALCNUM + 1)),
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     layerId = ~NAME,
@@ -397,12 +401,12 @@ server <- function(input, output, session) {
                     popup = countryPopup)
             } else {
                 worldMapAreaSel <- worldMapArea() %>% select(Area, Pop)
-                if(indicator2[1] == format.Date(min(daysDate)-1, "%m/%d/%y")) {
+                if(indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]]
                 } else {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
                 }
-                worldMapAreaSel$CALCNUM <- round(worldMapAreaSel$CALCNUM/worldMapAreaSel$Pop*1000000, 2)
+                worldMapAreaSel$CALCNUM <- round(worldMapAreaSel$CALCNUM / worldMapAreaSel$Pop * 1000000, 2)
                 WorldMapShapeOut <- merge(
                     WorldMapShape,
                     worldMapAreaSel,
@@ -432,7 +436,7 @@ server <- function(input, output, session) {
         leaflet(data = CHNMapShape) %>%
         setView(105, 35, zoom = 4)
     })
-    
+
     ### Get CHN Map dataset
     chnMapArea <- reactive({
         print("CHN Map Calculation...")
@@ -459,8 +463,8 @@ server <- function(input, output, session) {
     output$CHNMapSelection <- renderUI(chnMapSelection())
 
     ### Set CHNMapLegend
-    maxCHNMapCNT <- reactive(getLegendMax(chnMapArea(), VAR_TS_CNT_CONF_NEW, CHN_GEOMAP))
-    palCHNMapCNT <- reactive(getLegendPal(maxCHNMapCNT()))
+    maxCHNMapCNT <- shiny::reactive(getLegendMax(chnMapArea(), VAR_TS_CNT_CONF_NEW, CHN_GEOMAP))
+    palCHNMapCNT <- shiny::reactive(getLegendPal(maxCHNMapCNT()))
 
     observe({
         if(is.null(input$chnmvar)){
@@ -551,11 +555,11 @@ server <- function(input, output, session) {
         leaflet(data = USAMapShape) %>%
         setView(0, 30, zoom = 3)
     })
-    
+
     ### Get USA Map dataset
     usaMapArea <- reactive({
         print("USA Map Calculation...")
-        if(!is.null(input$usamcs)) {
+        if (!is.null(input$usamcs)) {
             if(input$usamcs == CHOICE_CONF) {
                 resData <- transformToUSAGeoMapDataset(RawDataConf, USAMapShape)
             } else if(input$usamcs == CHOICE_DEAD) {
@@ -576,6 +580,4 @@ server <- function(input, output, session) {
         getGeoMapSelection(input$usamcs, USA_GEOMAP)
     )
     output$USAMapSelection <- renderUI(usaMapSelection())
-
-    #session$onSessionEnded(stopApp)
 }

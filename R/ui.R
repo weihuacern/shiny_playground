@@ -16,19 +16,19 @@ ui <- dashboardPage(
                 icon = icon("th"),
                 startExpended = TRUE,
                 menuSubItem(
-                    'World',
-                    tabName = 'world-table',
-                    icon = icon('table')
+                    "World",
+                    tabName = "world-table",
+                    icon = icon("table")
                 ),
                 menuSubItem(
-                    'China',
-                    tabName = 'chn-table',
-                    icon = icon('table')
+                    "China",
+                    tabName = "chn-table",
+                    icon = icon("table")
                 ),
                 menuSubItem(
-                    'United States of America',
-                    tabName = 'usa-table',
-                    icon = icon('table')
+                    "United States of America",
+                    tabName = "usa-table",
+                    icon = icon("table")
                 )
             ),
             menuItem(
@@ -36,19 +36,19 @@ ui <- dashboardPage(
                 icon = icon("th"),
                 startExpended = TRUE,
                 menuSubItem(
-                    'World',
-                    tabName = 'world-ts',
-                    icon = icon('line-chart')
+                    "World",
+                    tabName = "world-ts",
+                    icon = icon("line-chart")
                 ),
                 menuSubItem(
-                    'China',
-                    tabName = 'chn-ts',
-                    icon = icon('line-chart')
+                    "China",
+                    tabName = "chn-ts",
+                    icon = icon("line-chart")
                 ),
                 menuSubItem(
-                    'United States of America',
-                    tabName = 'usa-ts',
-                    icon = icon('line-chart')
+                    "United States of America",
+                    tabName = "usa-ts",
+                    icon = icon("line-chart")
                 )
             ),
             menuItem(
@@ -56,19 +56,19 @@ ui <- dashboardPage(
                 icon = icon("th"),
                 startExpended = TRUE,
                 menuSubItem(
-                    'World',
-                    tabName = 'world-geomap',
-                    icon = icon('map')
+                    "World",
+                    tabName = "world-geomap",
+                    icon = icon("map")
                 ),
                 menuSubItem(
-                    'China',
-                    tabName = 'chn-geomap',
-                    icon = icon('map')
+                    "China",
+                    tabName = "chn-geomap",
+                    icon = icon("map")
                 ),
                 menuSubItem(
-                    'United States of America',
-                    tabName = 'usa-geomap',
-                    icon = icon('map')
+                    "United States of America",
+                    tabName = "usa-geomap",
+                    icon = icon("map")
                 )
             )
         )

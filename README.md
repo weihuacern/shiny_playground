@@ -39,6 +39,12 @@ Rscript USAMapShapeDataGen.R
 
 ## Instruction
 
+### LintR
+
+```bash
+install.packages("languageserver")
+```
+
 ### Dependencies
 
 ```bash
