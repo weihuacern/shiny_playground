@@ -80,7 +80,7 @@ ui <- dashboardPage(
             tabItem(
                 tabName = "world-table",
                 h2("COVID-19: World Table"),
-                DT::dataTableOutput(WORLD_TABLE_HTML_TAG)
+                DT::dataTableOutput(constIDTableWorld)
             ),
             # Time series, World
             tabItem(
@@ -90,11 +90,11 @@ ui <- dashboardPage(
                 fluidRow(
                     box(
                         h3("Confirmed Cases"),
-                        dygraphOutput(WORLD_TS_CONF_HTML_TAG)
+                        dygraphOutput(constIDTSWorldConf)
                     ),
                     box(
                         h3("Dead Cases"),
-                        dygraphOutput(WORLD_TS_DEAD_HTML_TAG)
+                        dygraphOutput(constIDTSWorldDead)
                     )
                 )
             ),
@@ -108,8 +108,8 @@ ui <- dashboardPage(
                         selectInput(
                             "wmcs",
                             "Confirmed or Dead?",
-                            choices = c(CHOICE_CONF, CHOICE_DEAD),
-                            selected = CHOICE_CONF),
+                            choices = c(constChoiceConf, constChoiceDead),
+                            selected = constChoiceConf),
                         uiOutput("WorldMapSlider")
                     ),
                     box(
@@ -129,8 +129,8 @@ ui <- dashboardPage(
                         selectInput(
                             "chnmcs",
                             "Confirmed, Dead or Revovered?",
-                            choices = c(CHOICE_CONF, CHOICE_DEAD),
-                            selected = CHOICE_CONF),
+                            choices = c(constChoiceConf, constChoiceDead),
+                            selected = constChoiceConf),
                         uiOutput("CHNMapSlider")
                     ),
                     box(
@@ -150,14 +150,14 @@ ui <- dashboardPage(
                         selectInput(
                             "usamcs",
                             "Confirmed, Dead or Revovered?",
-                            choices = c(CHOICE_CONF, CHOICE_DEAD),
-                            selected = CHOICE_CONF),
+                            choices = c(constChoiceConf, constChoiceDead),
+                            selected = constChoiceConf),
                         uiOutput("USAMapSlider")
                     ),
                     box(
                         helpText("Checking States details by single click on the map."),
-                        uiOutput("USAMapSelection")
-                        #checkboxInput("USAMapLegend", "Show legend", TRUE)
+                        uiOutput("USAMapSelection"),
+                        checkboxInput("USAMapLegend", "Show legend", TRUE)
                     )
                 )
             )

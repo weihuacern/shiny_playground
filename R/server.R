@@ -9,47 +9,28 @@ library(tidyverse)
 source("constants.R")
 source("utils.R")
 
-renderStatPlot <- function(statType, input) {
-    set.seed(435)
-
-    if (all(statType == "pois")) {
-        histdata <- rpois(5000, lambda = 5)
-        histtitle <- "Possion Distribution"
-    } else if (all(statType == "norm")) {
-        histdata <- rnorm(5000)
-        histtitle <- "Normal Distribution"
-    }
-
-    res <- renderPlot({
-        data <- histdata[seq_len(input$slider)]
-        hist(data, main = histtitle)
-    })
-    return(res)
-}
-
 ## Load data into memory first, save network IO
+urlStrConf <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+urlStrDead <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
+#urlStrRecv <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
+#urlStrConfUSA <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
+#urlStrDeadUSA <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
 
-UrlStrConf = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-UrlStrDead = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
-#UrlStrRecv = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
-#UrlStrConfUSA = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
-#UrlStrDeadUSA = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
-
-RawDataConf <- getJHUCSSEDataset(UrlStrConf)
-RawDataDead <- getJHUCSSEDataset(UrlStrDead)
+rawDataConf <- getJHUCSSEDataset(urlStrConf)
+rawDataDead <- getJHUCSSEDataset(urlStrDead)
 
 arrondi <- function(x) 10^ (ceiling(log10(x)))
 
 getGeoMapSlider <- function(sliderVarName, sliderDateArr, geoMapType) {
     day1tag <- "wmday1"
     day2tag <- "wmday2"
-    if (geoMapType == WORLD_GEOMAP) {
+    if (geoMapType == constTypeWorldGeoMap) {
         day1tag <- "wmday1"
         day2tag <- "wmday2"
-    } else if (geoMapType == CHN_GEOMAP) {
+    } else if (geoMapType == constTypeCHNGeoMap) {
         day1tag <- "chnmday1"
         day2tag <- "chnmday2"
-    } else if (geoMapType == USA_GEOMAP) {
+    } else if (geoMapType == constTypeUSAGeoMap) {
         day1tag <- "usamday1"
         day2tag <- "usamday2"
     }
@@ -61,10 +42,10 @@ getGeoMapSlider <- function(sliderVarName, sliderDateArr, geoMapType) {
     }
 
     if (sliderVarName %in% c(
-        VAR_TS_CNT_CONF_TTL,
-        VAR_TS_RAT_CONF_TTL,
-        VAR_TS_CNT_DEAD_TTL,
-        VAR_TS_RAT_DEAD_TTL
+        constVarTSCntConfTtl,
+        constVarTSRatConfTtl,
+        constVarTSCntDeadTtl,
+        constVarTSRatDeadTtl
         )) {
         return(sliderInput(
             day1tag, "Day", min(sliderDateArr), max(sliderDateArr),
@@ -77,10 +58,10 @@ getGeoMapSlider <- function(sliderVarName, sliderDateArr, geoMapType) {
 }
 
 getGeoMapSelection <- function(selVarName, geoMapType) {
-    var1 <- VAR_TS_CNT_CONF_NEW
-    var2 <- VAR_TS_RAT_CONF_NEW
-    var3 <- VAR_TS_CNT_CONF_TTL
-    var4 <- VAR_TS_RAT_CONF_TTL
+    var1 <- constVarTSCntConfNew
+    var2 <- constVarTSRatConfNew
+    var3 <- constVarTSCntConfTtl
+    var4 <- constVarTSRatConfTtl
 
     vartag <- "wmvar"
     if (is.null(selVarName) | is.null(geoMapType)) {
@@ -93,9 +74,9 @@ getGeoMapSelection <- function(selVarName, geoMapType) {
                 var4),
             label = "Indicator"))
     }
-    if (geoMapType == WORLD_GEOMAP) {
+    if (geoMapType == constTypeWorldGeoMap) {
         vartag <- "wmvar"
-        if (selVarName == CHOICE_CONF) {
+        if (selVarName == constChoiceConf) {
             return(radioButtons(
                 vartag,
                 choices = c(
@@ -104,47 +85,47 @@ getGeoMapSelection <- function(selVarName, geoMapType) {
                     var3,
                     var4),
                 label = "Indicator"))
-        } else if (selVarName == CHOICE_DEAD) {
+        } else if (selVarName == constChoiceDead) {
             return(radioButtons(
                 vartag,
                 choices = list(
-                    var1 <- VAR_TS_CNT_DEAD_NEW,
-                    var2 <- VAR_TS_RAT_DEAD_NEW,
-                    var3 <- VAR_TS_CNT_DEAD_TTL,
-                    var4 <- VAR_TS_RAT_DEAD_TTL),
+                    var1 <- constVarTSCntDeadNew,
+                    var2 <- constVarTSRatDeadNew,
+                    var3 <- constVarTSCntDeadTtl,
+                    var4 <- constVarTSRatDeadTtl),
                 label = "Indicator"))
         }
     } else {
-        if (geoMapType == CHN_GEOMAP) {
+        if (geoMapType == constTypeCHNGeoMap) {
             vartag <- "chnmvar"
         } else {
             vartag <- "usamvar"
         }
-        if (selVarName == CHOICE_CONF) {
+        if (selVarName == constChoiceConf) {
             return(radioButtons(
                 vartag,
                 choices = c(
                     var1,
                     var3),
                 label = "Indicator"))
-        } else if (selVarName == CHOICE_DEAD) {
+        } else if (selVarName == constChoiceDead) {
             return(radioButtons(
                 vartag,
                 choices = list(
-                    var1 <- VAR_TS_CNT_DEAD_NEW,
-                    var3 <- VAR_TS_CNT_DEAD_TTL),
+                    var1 <- constVarTSCntDeadNew,
+                    var3 <- constVarTSCntDeadTtl),
                 label = "Indicator"))
         }
     }
 }
 
 getLegendMax <- function(mapArea, legVarName, geoMapType) {
-    if (geoMapType == WORLD_GEOMAP) {
+    if (geoMapType == constTypeWorldGeoMap) {
         if (legVarName %in% c(
-            VAR_TS_CNT_CONF_NEW,
-            VAR_TS_CNT_CONF_TTL,
-            VAR_TS_CNT_DEAD_NEW,
-            VAR_TS_CNT_DEAD_TTL
+            constVarTSCntConfNew,
+            constVarTSCntConfTtl,
+            constVarTSCntDeadNew,
+            constVarTSCntDeadTtl
         )) {
             return(
                 max(
@@ -194,7 +175,7 @@ getCountryPopup <- function(popupCtyName, popupVarName, popupNum) {
         ": </strong>",
         popupNum)
 
-    if (popupVarName %in% c(VAR_TS_RAT_CONF_NEW, VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_NEW, VAR_TS_RAT_DEAD_TTL)) {
+    if (popupVarName %in% c(constVarTSRatConfNew, constVarTSRatConfTtl, constVarTSRatDeadNew, constVarTSRatDeadTtl)) {
         resCountryPopup <- paste0(
             resCountryPopup,
             " /1000000")
@@ -206,15 +187,15 @@ getCountryPopup <- function(popupCtyName, popupVarName, popupNum) {
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
     # Table Table View
-    worldTableData <- transformToWorldTableDataset(RawDataConf, RawDataDead)
-    output[[WORLD_TABLE_HTML_TAG]] <- DT::renderDataTable({
+    worldTableData <- transformToWorldTableDataset(rawDataConf, rawDataDead)
+    output[[constIDTableWorld]] <- DT::renderDataTable({
         DT::datatable(worldTableData)
     })
 
     # Table Time Series
     ## World TS
-    worldTSDataConf <- transformToWorldTSDataset(RawDataConf)
-    worldTSDataDead <- transformToWorldTSDataset(RawDataDead)
+    worldTSDataConf <- transformToWorldTSDataset(rawDataConf)
+    worldTSDataDead <- transformToWorldTSDataset(rawDataDead)
     worldDefCountryList <- c("US", "Italy", "Spain", "China", "Germany", "France")
     output$WorldTSSelection <- shiny::renderUI({
         prettyCheckboxGroup(
@@ -227,14 +208,14 @@ server <- function(input, output, session) {
     })
 
     observe({
-        output[[WORLD_TS_CONF_HTML_TAG]] <- renderDygraph({
+        output[[constIDTSWorldConf]] <- renderDygraph({
             dygraph(
                 worldTSDataConf[, input$wtssel]) %>%
             dyOptions(stackedGraph = FALSE) %>%
             dyRangeSelector(height = 50)
         })
 
-        output[[WORLD_TS_DEAD_HTML_TAG]] <- renderDygraph({
+        output[[constIDTSWorldDead]] <- renderDygraph({
             dygraph(
                 worldTSDataDead[, input$wtssel]) %>%
             dyOptions(stackedGraph = FALSE) %>%
@@ -245,7 +226,7 @@ server <- function(input, output, session) {
     # Table GeoMap
     ## Preparation for all GeoMaps
     ### Derive date range
-    stdDataset <- RawDataConf
+    stdDataset <- rawDataConf
     daysStr <- names(stdDataset %>% dplyr::select(contains("/")))
     daysDate <- as.Date(daysStr, "%m/%d/%y")
     daysDate <- daysDate[!is.na(daysDate)]
@@ -260,10 +241,10 @@ server <- function(input, output, session) {
     worldMapArea <- reactive({
         print("World Map Calculation...")
         if (!is.null(input$wmcs)) {
-            if (input$wmcs == CHOICE_CONF) {
-                resData <- transformToWorldGeoMapDataset(RawDataConf, WorldMapShape)
-            } else if (input$wmcs == CHOICE_DEAD) {
-                resData <- transformToWorldGeoMapDataset(RawDataDead, WorldMapShape)
+            if (input$wmcs == constChoiceConf) {
+                resData <- transformToWorldGeoMapDataset(rawDataConf, WorldMapShape)
+            } else if (input$wmcs == constChoiceDead) {
+                resData <- transformToWorldGeoMapDataset(rawDataDead, WorldMapShape)
             }
             return(resData)
         }
@@ -271,19 +252,19 @@ server <- function(input, output, session) {
 
     ### Set World Map Slider
     worldMapSlider <- reactive(
-        getGeoMapSlider(input$wmvar, daysDate, WORLD_GEOMAP)
+        getGeoMapSlider(input$wmvar, daysDate, constTypeWorldGeoMap)
     )
     output$WorldMapSlider <- shiny::renderUI(worldMapSlider())
 
     ### Set World Map Selection
     worldMapSelection <- reactive(
-        getGeoMapSelection(input$wmcs, WORLD_GEOMAP)
+        getGeoMapSelection(input$wmcs, constTypeWorldGeoMap)
     )
     output$WorldMapSelection <- shiny::renderUI(worldMapSelection())
 
     ### Set WorldMapLegend
-    maxCNT <- shiny::reactive(getLegendMax(worldMapArea(), VAR_TS_CNT_CONF_NEW, WORLD_GEOMAP))
-    maxRAT <- shiny::reactive(getLegendMax(worldMapArea(), VAR_TS_RAT_CONF_NEW, WORLD_GEOMAP))
+    maxCNT <- shiny::reactive(getLegendMax(worldMapArea(), constVarTSCntConfNew, constTypeWorldGeoMap))
+    maxRAT <- shiny::reactive(getLegendMax(worldMapArea(), constVarTSRatConfNew, constTypeWorldGeoMap))
     palCNT <- shiny::reactive(getLegendPal(maxCNT()))
     palRAT <- shiny::reactive(getLegendPal(maxRAT()))
 
@@ -294,10 +275,10 @@ server <- function(input, output, session) {
             proxy %>% leaflet::clearControls()
             if (input$WorldMapLegend) {
                 if (input$wmvar %in% c(
-                    VAR_TS_RAT_CONF_NEW,
-                    VAR_TS_RAT_CONF_TTL,
-                    VAR_TS_RAT_DEAD_NEW,
-                    VAR_TS_RAT_DEAD_TTL)) {
+                    constVarTSRatConfNew,
+                    constVarTSRatConfTtl,
+                    constVarTSRatDeadNew,
+                    constVarTSRatDeadTtl)) {
                     proxy %>% leaflet::addLegend(
                         position = "bottomright",
                         pal = palRAT(),
@@ -327,17 +308,17 @@ server <- function(input, output, session) {
         if (!is.null(input$wmday1)) {
             indicator1 <- format.Date(input$wmday1, "%m/%d/%y")
         } else {
-            indicator1 = format.Date(max(daysDate), "%m/%d/%y")
+            indicator1 <- format.Date(max(daysDate), "%m/%d/%y")
         }
         if (!is.null(input$wmday2)) {
             indicator2 <- format.Date(input$wmday2 - c(1, 0), "%m/%d/%y")
         } else {
-            indicator2 = format.Date(c(min(daysDate) - 1, max(daysDate)), "%m/%d/%y")
+            indicator2 <- format.Date(c(min(daysDate) - 1, max(daysDate)), "%m/%d/%y")
         }
 
         if (is.null(input$wmvar)) {
         } else {
-            if (input$wmvar %in% c(VAR_TS_RAT_CONF_TTL, VAR_TS_RAT_DEAD_TTL)) {
+            if (input$wmvar %in% c(constVarTSRatConfTtl, constVarTSRatDeadTtl)) {
                 WorldMapShapeOut <- merge(
                     WorldMapShape,
                     worldMapArea(),
@@ -357,7 +338,7 @@ server <- function(input, output, session) {
                     color = "#BDBDC3",
                     weight = 1,
                     popup = countryPopup)
-            } else if (input$wmvar %in% c(VAR_TS_CNT_CONF_TTL, VAR_TS_CNT_DEAD_TTL)) {
+            } else if (input$wmvar %in% c(constVarTSCntConfTtl, constVarTSCntDeadTtl)) {
                 WorldMapShapeOut <- merge(
                     WorldMapShape,
                     worldMapArea(),
@@ -377,7 +358,7 @@ server <- function(input, output, session) {
                     color = "#BDBDC3",
                     weight = 1,
                     popup = countryPopup)
-            } else if (input$wmvar %in% c(VAR_TS_CNT_CONF_NEW, VAR_TS_CNT_DEAD_NEW)) {
+            } else if (input$wmvar %in% c(constVarTSCntConfNew, constVarTSCntDeadNew)) {
                 worldMapAreaSel <- worldMapArea() %>% dplyr::select(Area, Pop)
                 if (indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]]
@@ -424,7 +405,7 @@ server <- function(input, output, session) {
                 )
                 leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
                 addPolygons(
-                    fillColor = palRAT()(log(WorldMapShapeOut$CALCNUM/WorldMapShapeOut$Pop*1000000+1)),
+                    fillColor = palRAT()(log(WorldMapShapeOut$CALCNUM / WorldMapShapeOut$Pop * 1000000 + 1)),
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     layerId = ~NAME,
@@ -445,10 +426,10 @@ server <- function(input, output, session) {
     chnMapArea <- reactive({
         print("CHN Map Calculation...")
         if (!is.null(input$chnmcs)) {
-            if (input$chnmcs == CHOICE_CONF) {
-                resData <- transformToCHNGeoMapDataset(RawDataConf, CHNMapShape)
-            } else if(input$chnmcs == CHOICE_DEAD) {
-                resData <- transformToCHNGeoMapDataset(RawDataDead, CHNMapShape)
+            if (input$chnmcs == constChoiceConf) {
+                resData <- transformToCHNGeoMapDataset(rawDataConf, CHNMapShape)
+            } else if(input$chnmcs == constChoiceDead) {
+                resData <- transformToCHNGeoMapDataset(rawDataDead, CHNMapShape)
             }
             return(resData)
         }
@@ -456,18 +437,18 @@ server <- function(input, output, session) {
 
     ### Set CHN Slider
     chnMapSlider <- reactive(
-        getGeoMapSlider(input$chnmvar, daysDate, CHN_GEOMAP)
+        getGeoMapSlider(input$chnmvar, daysDate, constTypeCHNGeoMap)
     )
     output$CHNMapSlider <- shiny::renderUI(chnMapSlider())
 
     ### Set CHN Map Selection
     chnMapSelection <- reactive(
-        getGeoMapSelection(input$chnmcs, CHN_GEOMAP)
+        getGeoMapSelection(input$chnmcs, constTypeCHNGeoMap)
     )
     output$CHNMapSelection <- shiny::renderUI(chnMapSelection())
 
     ### Set CHNMapLegend
-    maxCHNMapCNT <- shiny::reactive(getLegendMax(chnMapArea(), VAR_TS_CNT_CONF_NEW, CHN_GEOMAP))
+    maxCHNMapCNT <- shiny::reactive(getLegendMax(chnMapArea(), constVarTSCntConfNew, constTypeCHNGeoMap))
     palCHNMapCNT <- shiny::reactive(getLegendPal(maxCHNMapCNT()))
 
     observe({
@@ -494,17 +475,17 @@ server <- function(input, output, session) {
         if (!is.null(input$chnmday1)) {
             indicator1 <- format.Date(input$chnmday1, "%m/%d/%y")
         } else {
-            indicator1 = format.Date(max(daysDate), "%m/%d/%y")
+            indicator1 <- format.Date(max(daysDate), "%m/%d/%y")
         }
         if (!is.null(input$chnmday2)) {
-            indicator2 <- format.Date(input$chnmday2-c(1,0), "%m/%d/%y")
+            indicator2 <- format.Date(input$chnmday2 - c(1, 0), "%m/%d/%y")
         } else {
-            indicator2 = format.Date(c(min(daysDate)-1, max(daysDate)), "%m/%d/%y")
+            indicator2 <- format.Date(c(min(daysDate) - 1, max(daysDate)), "%m/%d/%y")
         }
 
         if (is.null(input$chnmvar)) {
         } else {
-            if (input$chnmvar %in% c(VAR_TS_CNT_CONF_NEW, VAR_TS_CNT_DEAD_NEW)) {
+            if (input$chnmvar %in% c(constVarTSCntConfNew, constVarTSCntDeadNew)) {
                 chnMapAreaSel <- chnMapArea() %>% dplyr::select(Area)
                 if (indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
                     chnMapAreaSel$CALCNUM <- chnMapArea()[, indicator2[2]]
@@ -564,10 +545,10 @@ server <- function(input, output, session) {
     usaMapArea <- reactive({
         print("USA Map Calculation...")
         if (!is.null(input$usamcs)) {
-            if (input$usamcs == CHOICE_CONF) {
-                resData <- transformToUSAGeoMapDataset(RawDataConf, USAMapShape)
-            } else if(input$usamcs == CHOICE_DEAD) {
-                resData <- transformToUSAGeoMapDataset(RawDataDead, USAMapShape)
+            if (input$usamcs == constChoiceConf) {
+                resData <- transformToUSAGeoMapDataset(rawDataConf, USAMapShape)
+            } else if(input$usamcs == constChoiceDead) {
+                resData <- transformToUSAGeoMapDataset(rawDataDead, USAMapShape)
             }
             return(resData)
         }
@@ -575,13 +556,13 @@ server <- function(input, output, session) {
 
     ### Set USA Slider
     usaMapSlider <- reactive(
-        getGeoMapSlider(input$usamvar, daysDate, USA_GEOMAP)
+        getGeoMapSlider(input$usamvar, daysDate, constTypeUSAGeoMap)
     )
     output$USAMapSlider <- shiny::renderUI(usaMapSlider())
 
     ### Set USA Map Selection
     usaMapSelection <- reactive(
-        getGeoMapSelection(input$usamcs, USA_GEOMAP)
+        getGeoMapSelection(input$usamcs, constTypeUSAGeoMap)
     )
     output$USAMapSelection <- shiny::renderUI(usaMapSelection())
 }

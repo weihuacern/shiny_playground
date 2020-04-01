@@ -1,26 +1,24 @@
-CHOICE_CONF = "Confirmed"
-CHOICE_DEAD = "Dead"
+# Constants
+## Choices related
+constChoiceConf <- "Confirmed"
+constChoiceDead <- "Dead"
 
-VAR_1 = "Var1"
-VAR_2 = "Var2"
-VAR_3 = "Var3"
-VAR_4 = "Var4"
+## Variable type related
+constVarTSCntConfNew <- "New confirmed cases over period"
+constVarTSRatConfNew <- "New confirmed cases over period/Population"
+constVarTSCntConfTtl <- "Total confirmed cases"
+constVarTSRatConfTtl <- "Total confirmed cases/Population"
+constVarTSCntDeadNew <- "New dead cases over period"
+constVarTSRatDeadNew <- "New dead cases over period/Population"
+constVarTSCntDeadTtl <- "Total dead cases"
+constVarTSRatDeadTtl <- "Total dead cases/Population"
 
-VAR_TS_CNT_CONF_NEW = "New confirmed cases over period"
-VAR_TS_RAT_CONF_NEW = "New confirmed cases over period/Population"
-VAR_TS_CNT_CONF_TTL = "Total confirmed cases"
-VAR_TS_RAT_CONF_TTL = "Total confirmed cases/Population"
+## GeoMap type related
+constTypeWorldGeoMap <- "WORLDGEOMAP"
+constTypeCHNGeoMap <- "CHNGEOMAP"
+constTypeUSAGeoMap <- "USAGEOMAP"
 
-VAR_TS_CNT_DEAD_NEW = "New dead cases over period"
-VAR_TS_RAT_DEAD_NEW = "New dead cases over period/Population"
-VAR_TS_CNT_DEAD_TTL = "Total dead cases"
-VAR_TS_RAT_DEAD_TTL = "Total dead cases/Population"
-
-WORLD_GEOMAP = "WORLDGEOMAP"
-CHN_GEOMAP = "CHNGEOMAP"
-USA_GEOMAP = "USAGEOMAP"
-
-WORLD_TS_CONF_HTML_TAG = "WorldTSConf"
-WORLD_TS_DEAD_HTML_TAG = "WorldTSDead"
-
-WORLD_TABLE_HTML_TAG = "WorldTable"
+## ID related
+constIDTableWorld <- "WorldTable"
+constIDTSWorldConf <- "WorldTSConf"
+constIDTSWorldDead <- "WorldTSDead"
