@@ -20,44 +20,44 @@ transformToWorldTableDataset <- function(JHUCSSEConfDf, JHUCSSEDeadDf) {
     latestDate <- (rev(names(JHUCSSEConfDf))[1])
     secondLatestDate <- (rev(names(JHUCSSEConfDf))[2])
 
-    TableConfList <- JHUCSSEConfDf %>% dplyr::select(
+    tableConfList <- JHUCSSEConfDf %>% dplyr::select(
         -`Province/State`,
         -Lat, -Long) %>%
         group_by(Area) %>%
         summarise_each(sum) %>%
         arrange(desc(!!sym(latestDate)))
-    TableConfList$Area <- as.character(TableConfList$Area)
-    ConfVars <- c(Area = "Area", ConfCnt = latestDate, TmpConfCnt = secondLatestDate)
-    TableConfList <- dplyr::select(TableConfList, !!ConfVars)
-    TableConfList <- dplyr::mutate(TableConfList, NewConfCnt = ConfCnt - TmpConfCnt)
-    TableConfList$Area <- as.character(TableConfList$Area)
+    tableConfList$Area <- as.character(tableConfList$Area)
+    confVars <- c(Area = "Area", ConfCnt = latestDate, TmpConfCnt = secondLatestDate)
+    tableConfList <- dplyr::select(tableConfList, !!confVars)
+    tableConfList <- dplyr::mutate(tableConfList, NewConfCnt = ConfCnt - TmpConfCnt)
+    tableConfList$Area <- as.character(tableConfList$Area)
 
-    TableDeadList <- JHUCSSEDeadDf %>% dplyr::select(
+    tableDeadList <- JHUCSSEDeadDf %>% dplyr::select(
         -`Province/State`,
         -Lat, -Long) %>%
         group_by(Area) %>%
         summarise_each(sum) %>%
         arrange(desc(!!sym(latestDate)))
-    TableDeadList$Area <- as.character(TableDeadList$Area)
-    DeadVars <- c(Area = "Area", DeadCnt = latestDate, TmpDeadCnt = secondLatestDate)
-    TableDeadList <- dplyr::select(TableDeadList, !!DeadVars)
-    TableDeadList <- dplyr::mutate(TableDeadList, NewDeadCnt = DeadCnt - TmpDeadCnt)
-    TableDeadList <- TableDeadList %>%
+    tableDeadList$Area <- as.character(tableDeadList$Area)
+    deadVars <- c(Area = "Area", DeadCnt = latestDate, TmpDeadCnt = secondLatestDate)
+    tableDeadList <- dplyr::select(tableDeadList, !!deadVars)
+    tableDeadList <- dplyr::mutate(tableDeadList, NewDeadCnt = DeadCnt - TmpDeadCnt)
+    tableDeadList <- tableDeadList %>%
         dplyr::select(Area, DeadCnt, NewDeadCnt)
-    TableDeadList$Area <- as.character(TableDeadList$Area)
+    tableDeadList$Area <- as.character(tableDeadList$Area)
 
-    TableDf <- left_join(
-        data.frame(Area = TableConfList$Area, ConfCnt = TableConfList$ConfCnt, NewConfCnt = TableConfList$NewConfCnt),
-        TableDeadList
+    tableDf <- left_join(
+        data.frame(Area = tableConfList$Area, ConfCnt = tableConfList$ConfCnt, NewConfCnt = tableConfList$NewConfCnt),
+        tableDeadList
     )
 
-    TableDf <- TableDf %>% dplyr::rename(
+    tableDf <- tableDf %>% dplyr::rename(
         "Confirmed Cases" = ConfCnt,
         "New Confirmed Cases" = NewConfCnt,
         "Dead Cases" = DeadCnt,
         "New Dead Cases" = NewDeadCnt
     )
-    return(TableDf)
+    return(tableDf)
 }
 
 #df1 <- getJHUCSSEDataset("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
@@ -65,7 +65,6 @@ transformToWorldTableDataset <- function(JHUCSSEConfDf, JHUCSSEDeadDf) {
 #tabdata <- transformToWorldTableDataset(df1, df2)
 
 transformToWorldTSDataset <- function(JHUCSSEDf) {
-    # Rename
     names(JHUCSSEDf)[names(JHUCSSEDf) == "Country/Region"] <- "Area"
 
     TSDf <- JHUCSSEDf %>% dplyr::select(
@@ -74,12 +73,12 @@ transformToWorldTSDataset <- function(JHUCSSEDf) {
         group_by(Area) %>%
         summarise_each(sum)
     TSDf$Area <- as.character(TSDf$Area)
-    TSDf <- melt(as.data.frame(TSDf), id=c("Area"))
+    TSDf <- reshape::melt(as.data.frame(TSDf), id = c("Area"))
     names(TSDf)[names(TSDf) == "variable"] <- "Time"
     names(TSDf)[names(TSDf) == "value"] <- "Value"
     TSDf$Time <- as.Date(TSDf$Time, format = "%m/%d/%y")
-    TSDf <- cast(TSDf, Time ~ Area, value = "Value")
-    TSData <- xts(TSDf %>% select(-Time), order.by = TSDf$Time)
+    TSDf <- reshape::cast(TSDf, Time ~ Area, value = "Value")
+    TSData <- xts::xts(TSDf %>% dplyr::select(-Time), order.by = TSDf$Time)
     return(TSData)
 }
 
@@ -135,15 +134,15 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
 
     GeoMapDf <- JHUCSSEDf %>% dplyr::select(
         -`Province/State`,
-        -Lat, -Long, 
+        -Lat, -Long,
         -`Country/Region`) %>%
         group_by(Area) %>%
         summarise_each(sum)
     GeoMapDf$Area <- as.character(GeoMapDf$Area)
 
-    days <- names(GeoMapDf %>% select(contains("/")))
+    days <- names(GeoMapDf %>% dplyr::select(contains("/")))
     formattedDate <- as.Date(days, "%m/%d/%y")
-    names(GeoMapDf)[str_detect(names(GeoMapDf), "/")] <- format.Date(formattedDate, "%m/%d/%y")
+    names(GeoMapDf)[stringr::str_detect(names(GeoMapDf), "/")] <- format.Date(formattedDate, "%m/%d/%y")
 
     GeoMapDf <- left_join(
         data.frame(
@@ -202,9 +201,9 @@ transformToCHNGeoMapDataset <- function(JHUCSSEDf, CHNMapShapeDf) {
         summarise_each(sum)
     GeoMapDf$Area <- as.character(GeoMapDf$Area)
 
-    days <- names(GeoMapDf %>% select(contains("/")))
+    days <- names(GeoMapDf %>% dplyr::select(contains("/")))
     formattedDate <- as.Date(days, "%m/%d/%y")
-    names(GeoMapDf)[str_detect(names(GeoMapDf), "/")] <- format.Date(formattedDate, "%m/%d/%y")
+    names(GeoMapDf)[stringr::str_detect(names(GeoMapDf), "/")] <- format.Date(formattedDate, "%m/%d/%y")
 
     GeoMapDf <- left_join(
         data.frame(
@@ -248,15 +247,15 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, USAMapShapeDf) {
 
     GeoMapDf <- JHUCSSEDf %>% dplyr::select(
         -`Province/State`,
-        -Lat, -Long, 
+        -Lat, -Long,
         -`Country/Region`) %>%
         group_by(Area) %>%
         summarise_each(sum)
     GeoMapDf$Area <- as.character(GeoMapDf$Area)
 
-    days <- names(GeoMapDf %>% select(contains("/")))
+    days <- names(GeoMapDf %>% dplyr::select(contains("/")))
     formattedDate <- as.Date(days, "%m/%d/%y")
-    names(GeoMapDf)[str_detect(names(GeoMapDf), "/")] <- format.Date(formattedDate, "%m/%d/%y")
+    names(GeoMapDf)[stringr::str_detect(names(GeoMapDf), "/")] <- format.Date(formattedDate, "%m/%d/%y")
 
     GeoMapDf <- left_join(
         data.frame(
