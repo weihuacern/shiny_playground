@@ -90,6 +90,7 @@ transformToWorldTSDataset <- function(JHUCSSEDf) {
 
 # Object: WorldMapShape
 load("../data/WorldMapShape.RData")
+#load("../data/mapShapeWorld.RData")
 
 transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     # Align Country/Region Name to WorldMapShapedf$NAME

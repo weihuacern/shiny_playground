@@ -13,7 +13,8 @@ WorldMapShape <- readOGR(
 ### Cast NAME from integer to character
 WorldMapShape@data$NAME <- as.character(WorldMapShape@data$NAME)
 
-### Modify S4, slot data, column NAME for Kazakhstan
+### Modify S4, slot data, column NAME and POP_EST for Kazakhstan
+levels(WorldMapShape@data$POP_EST)[169] <- 18448600
 WorldMapShape@data[WorldMapShape@data$NAME == "Baikonur", "NAME"] <- "Kazakhstan"
 
 # Dump to local file
