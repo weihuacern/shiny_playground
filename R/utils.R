@@ -88,12 +88,11 @@ transformToWorldTSDataset <- function(JHUCSSEDf) {
 #print(typeof(names(tsdata)))
 #print(as.matrix(xts::last(tsdata)))
 
-# Object: WorldMapShape
-load("../data/WorldMapShape.RData")
-#load("../data/mapShapeWorld.RData")
+# Object: mapShapeWorld
+load("../data/mapShapeWorld.RData")
 
-transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
-    # Align Country/Region Name to WorldMapShapedf$NAME
+transformToWorldGeoMapDataset <- function(JHUCSSEDf, mapShapeWorldDf) {
+    # Align Country/Region Name to mapShapeWorldDf$NAME
     JHUCSSEDf$`Country/Region` <- as.character(JHUCSSEDf$`Country/Region`)
 
     # Asia
@@ -125,9 +124,9 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
     JHUCSSEDf$`Country/Region`[JHUCSSEDf$`Country/Region` == "Saint Kitts and Nevis"] <- "St. Kitts and Nevis"
 
     JHUCSSEDf$Area <- as.character(
-        unique(WorldMapShapeDf$NAME)[
+        unique(mapShapeWorldDf$NAME)[
             charmatch(JHUCSSEDf$`Country/Region`,
-            unique(WorldMapShapeDf$NAME))
+            unique(mapShapeWorldDf$NAME))
         ]
     )
 
@@ -147,8 +146,8 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
 
     GeoMapDf <- left_join(
         data.frame(
-            Area = WorldMapShapeDf$NAME %>% as.character(),
-            Pop = WorldMapShapeDf$POP_EST %>% as.character() %>% as.numeric()
+            Area = mapShapeWorldDf$NAME %>% as.character(),
+            Pop = mapShapeWorldDf$POP_EST %>% as.character() %>% as.numeric()
         ),
         GeoMapDf)
 
@@ -160,16 +159,16 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, WorldMapShapeDf) {
 #head(df1, 4)
 #df2 <- getWIKIPopDataset()
 #head(df2, 4)
-#head(WorldMapShape, 1)
-#print(WorldMapShape$NAME)
-#print(WorldMapShape$POP_EST)
-#df <- transformToWorldGeoMapDataset(df1, WorldMapShape)
+#head(mapShapeWorld, 1)
+#print(mapShapeWorld$NAME)
+#print(mapShapeWorld$POP_EST)
+#df <- transformToWorldGeoMapDataset(df1, mapShapeWorld)
 #head(df[df$`Area`=="China",], 4)
 
-# Object: CHNMapShape.RData
-load("../data/CHNMapShape.RData")
+# Object: mapShapeCHN.RData
+load("../data/mapShapeCHN.RData")
 
-transformToCHNGeoMapDataset <- function(JHUCSSEDf, CHNMapShapeDf) {
+transformToCHNGeoMapDataset <- function(JHUCSSEDf, mapShapeCHNDf) {
     JHUCSSEDf$`Province/State` <- as.character(JHUCSSEDf$`Province/State`)
     JHUCSSEDf$`Country/Region` <- as.character(JHUCSSEDf$`Country/Region`)
 
@@ -180,15 +179,15 @@ transformToCHNGeoMapDataset <- function(JHUCSSEDf, CHNMapShapeDf) {
     # Select China
     JHUCSSEDf <- JHUCSSEDf[JHUCSSEDf$`Country/Region` == "China", ]
 
-    # Align Province/State to CHNMapShape$`NAME_1`
+    # Align Province/State to mapShapeCHN$`NAME_1`
     #JHUCSSEDf$`Province/State`[JHUCSSEDf$`Province/State` == "Hong Kong"] <- ""
     JHUCSSEDf$`Province/State`[JHUCSSEDf$`Province/State` == "Inner Mongolia"] <- "Nei Mongol"
     #JHUCSSEDf$`Province/State`[JHUCSSEDf$`Province/State` == "Macau"] <- ""
     JHUCSSEDf$`Province/State`[JHUCSSEDf$`Province/State` == "Tibet"] <- "Xizang"
 
     JHUCSSEDf$Area <- as.character(
-        unique(CHNMapShapeDf$`NAME_1`)[
-            charmatch(JHUCSSEDf$`Province/State`, unique(CHNMapShapeDf$`NAME_1`))
+        unique(mapShapeCHNDf$`NAME_1`)[
+            charmatch(JHUCSSEDf$`Province/State`, unique(mapShapeCHNDf$`NAME_1`))
         ]
     )
 
@@ -208,7 +207,7 @@ transformToCHNGeoMapDataset <- function(JHUCSSEDf, CHNMapShapeDf) {
 
     GeoMapDf <- left_join(
         data.frame(
-            Area = CHNMapShapeDf$`NAME_1` %>% as.character()
+            Area = mapShapeCHNDf$`NAME_1` %>% as.character()
         ),
         GeoMapDf)
 
@@ -216,13 +215,13 @@ transformToCHNGeoMapDataset <- function(JHUCSSEDf, CHNMapShapeDf) {
     return(GeoMapDf)
 }
 
-#df <- transformToCHNGeoMapDataset(df1, CHNMapShape)
+#df <- transformToCHNGeoMapDataset(df1, mapShapeCHN)
 #head(df, 4)
 
-# Object: USAMapShape.RData
-load("../data/USAMapShape.RData")
+# Object: mapShapeUSA.RData
+load("../data/mapShapeUSA.RData")
 
-transformToUSAGeoMapDataset <- function(JHUCSSEDf, USAMapShapeDf) {
+transformToUSAGeoMapDataset <- function(JHUCSSEDf, mapShapeUSADf) {
     # Remove duplication, Province/State with Kitsap, WA and WA
     JHUCSSEDf <- JHUCSSEDf[!grepl(",", JHUCSSEDf$`Province/State`), ]
 
@@ -232,14 +231,14 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, USAMapShapeDf) {
     # Select United States of America
     JHUCSSEDf <- JHUCSSEDf[JHUCSSEDf$`Country/Region` == "US", ]
 
-    # Align Province/State to USAMapShape$`NAME_1`
+    # Align Province/State to mapShapeUSA$`NAME_1`
     JHUCSSEDf$`Province/State`[JHUCSSEDf$`Province/State` == "Tibet"] <- "Xizang"
 
     JHUCSSEDf$Area <- as.character(
-        unique(USAMapShapeDf$`NAME_1`)[
+        unique(mapShapeUSADf$`NAME_1`)[
             charmatch(
                 JHUCSSEDf$`Province/State`,
-                unique(USAMapShapeDf$`NAME_1`)
+                unique(mapShapeUSADf$`NAME_1`)
             )
         ]
     )
@@ -260,7 +259,7 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, USAMapShapeDf) {
 
     GeoMapDf <- left_join(
         data.frame(
-            Area = USAMapShapeDf$`NAME_1` %>% as.character()
+            Area = mapShapeUSADf$`NAME_1` %>% as.character()
         ),
         GeoMapDf)
 
@@ -268,5 +267,5 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, USAMapShapeDf) {
     return(GeoMapDf)
 }
 
-#df <- transformToUSAGeoMapDataset(df1, USAMapShape)
+#df <- transformToUSAGeoMapDataset(df1, mapShapeUSA)
 #head(df, 4)

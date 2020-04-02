@@ -233,7 +233,7 @@ server <- function(input, output, session) {
 
     ## WorldMap
     output$WorldMap <- renderLeaflet({
-        leaflet(data = WorldMapShape) %>%
+        leaflet(data = mapShapeWorld) %>%
         setView(0, 30, zoom = 3)
     })
 
@@ -242,9 +242,9 @@ server <- function(input, output, session) {
         print("World Map Calculation...")
         if (!is.null(input$wmcs)) {
             if (input$wmcs == constChoiceConf) {
-                resData <- transformToWorldGeoMapDataset(rawDataConf, WorldMapShape)
+                resData <- transformToWorldGeoMapDataset(rawDataConf, mapShapeWorld)
             } else if (input$wmcs == constChoiceDead) {
-                resData <- transformToWorldGeoMapDataset(rawDataDead, WorldMapShape)
+                resData <- transformToWorldGeoMapDataset(rawDataDead, mapShapeWorld)
             }
             return(resData)
         }
@@ -271,7 +271,7 @@ server <- function(input, output, session) {
     observe({
         if (is.null(input$wmvar)) {
         } else {
-            proxy <- leaflet::leafletProxy("WorldMap", data = WorldMapShape)
+            proxy <- leaflet::leafletProxy("WorldMap", data = mapShapeWorld)
             proxy %>% leaflet::clearControls()
             if (input$WorldMapLegend) {
                 if (input$wmvar %in% c(
@@ -319,40 +319,40 @@ server <- function(input, output, session) {
         if (is.null(input$wmvar)) {
         } else {
             if (input$wmvar %in% c(constVarTSRatConfTtl, constVarTSRatDeadTtl)) {
-                WorldMapShapeOut <- merge(
-                    WorldMapShape,
+                mapShapeWorldOut <- merge(
+                    mapShapeWorld,
                     worldMapArea(),
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
-                    WorldMapShapeOut$NAME,
+                    mapShapeWorldOut$NAME,
                     input$wmvar,
-                    round(WorldMapShapeOut[[indicator1]] / WorldMapShapeOut$Pop * 1000000, 2)
+                    round(mapShapeWorldOut[[indicator1]] / mapShapeWorldOut$Pop * 1000000, 2)
                 )
-                leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
+                leafletProxy("WorldMap", data = mapShapeWorldOut) %>%
                 addPolygons(
-                    fillColor = palRAT()(log((WorldMapShapeOut[[indicator1]] / WorldMapShapeOut$Pop * 1000000) + 1)),
+                    fillColor = palRAT()(log((mapShapeWorldOut[[indicator1]] / mapShapeWorldOut$Pop * 1000000) + 1)),
                     layerId = ~NAME,
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     weight = 1,
                     popup = countryPopup)
             } else if (input$wmvar %in% c(constVarTSCntConfTtl, constVarTSCntDeadTtl)) {
-                WorldMapShapeOut <- merge(
-                    WorldMapShape,
+                mapShapeWorldOut <- merge(
+                    mapShapeWorld,
                     worldMapArea(),
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
-                    WorldMapShapeOut$NAME,
+                    mapShapeWorldOut$NAME,
                     input$wmvar,
-                    round(WorldMapShapeOut[[indicator1]], 2)
+                    round(mapShapeWorldOut[[indicator1]], 2)
                 )
-                leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
+                leafletProxy("WorldMap", data = mapShapeWorldOut) %>%
                 addPolygons(
-                    fillColor = palCNT()(log((WorldMapShapeOut[[indicator1]])+1)),
+                    fillColor = palCNT()(log((mapShapeWorldOut[[indicator1]]) + 1)),
                     fillOpacity = 1,
                     layerId = ~NAME,
                     color = "#BDBDC3",
@@ -365,20 +365,20 @@ server <- function(input, output, session) {
                 } else {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
                 }
-                WorldMapShapeOut <- merge(
-                    WorldMapShape,
+                mapShapeWorldOut <- merge(
+                    mapShapeWorld,
                     worldMapAreaSel,
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
-                    WorldMapShapeOut$NAME,
+                    mapShapeWorldOut$NAME,
                     input$wmvar,
-                    WorldMapShapeOut$CALCNUM
+                    mapShapeWorldOut$CALCNUM
                 )
-                leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
+                leafletProxy("WorldMap", data = mapShapeWorldOut) %>%
                 addPolygons(
-                    fillColor = palCNT()(log(WorldMapShapeOut$CALCNUM + 1)),
+                    fillColor = palCNT()(log(mapShapeWorldOut$CALCNUM + 1)),
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     layerId = ~NAME,
@@ -392,20 +392,20 @@ server <- function(input, output, session) {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
                 }
                 worldMapAreaSel$CALCNUM <- round(worldMapAreaSel$CALCNUM / worldMapAreaSel$Pop * 1000000, 2)
-                WorldMapShapeOut <- merge(
-                    WorldMapShape,
+                mapShapeWorldOut <- merge(
+                    mapShapeWorld,
                     worldMapAreaSel,
                     by.x = "NAME",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
-                    WorldMapShapeOut$NAME,
+                    mapShapeWorldOut$NAME,
                     input$wmvar,
-                    WorldMapShapeOut$CALCNUM
+                    mapShapeWorldOut$CALCNUM
                 )
-                leafletProxy("WorldMap", data = WorldMapShapeOut) %>%
+                leafletProxy("WorldMap", data = mapShapeWorldOut) %>%
                 addPolygons(
-                    fillColor = palRAT()(log(WorldMapShapeOut$CALCNUM / WorldMapShapeOut$Pop * 1000000 + 1)),
+                    fillColor = palRAT()(log(mapShapeWorldOut$CALCNUM / mapShapeWorldOut$Pop * 1000000 + 1)),
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     layerId = ~NAME,
@@ -418,7 +418,7 @@ server <- function(input, output, session) {
     ## CHNMap
     ### CHNMap frame with init coordinate
     output$CHNMap <- renderLeaflet({
-        leaflet(data = CHNMapShape) %>%
+        leaflet(data = mapShapeCHN) %>%
         setView(105, 35, zoom = 4)
     })
 
@@ -427,9 +427,9 @@ server <- function(input, output, session) {
         print("CHN Map Calculation...")
         if (!is.null(input$chnmcs)) {
             if (input$chnmcs == constChoiceConf) {
-                resData <- transformToCHNGeoMapDataset(rawDataConf, CHNMapShape)
+                resData <- transformToCHNGeoMapDataset(rawDataConf, mapShapeCHN)
             } else if(input$chnmcs == constChoiceDead) {
-                resData <- transformToCHNGeoMapDataset(rawDataDead, CHNMapShape)
+                resData <- transformToCHNGeoMapDataset(rawDataDead, mapShapeCHN)
             }
             return(resData)
         }
@@ -454,7 +454,7 @@ server <- function(input, output, session) {
     observe({
         if (is.null(input$chnmvar)) {
         } else {
-            proxy <- leaflet::leafletProxy("CHNMap", data = CHNMapShape)
+            proxy <- leaflet::leafletProxy("CHNMap", data = mapShapeCHN)
             proxy %>% leaflet::clearControls()
             if (input$CHNMapLegend) {
                 proxy %>% leaflet::addLegend(
@@ -492,40 +492,40 @@ server <- function(input, output, session) {
                 } else {
                     chnMapAreaSel$CALCNUM <- chnMapArea()[, indicator2[2]] - chnMapArea()[, indicator2[1]]
                 }
-                CHNMapShapeOut <- merge(
-                    CHNMapShape,
+                mapShapeCHNOut <- merge(
+                    mapShapeCHN,
                     chnMapAreaSel,
                     by.x = "NAME_1",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
-                    CHNMapShapeOut$`NAME_1`,
+                    mapShapeCHNOut$`NAME_1`,
                     input$chnmvar,
-                    CHNMapShapeOut$CALCNUM
+                    mapShapeCHNOut$CALCNUM
                 )
-                leafletProxy("CHNMap", data = CHNMapShapeOut) %>%
+                leafletProxy("CHNMap", data = mapShapeCHNOut) %>%
                 addPolygons(
-                    fillColor = palCHNMapCNT()(log(CHNMapShapeOut$CALCNUM+1)),
+                    fillColor = palCHNMapCNT()(log(mapShapeCHNOut$CALCNUM + 1)),
                     fillOpacity = 1,
                     color = "#BDBDC3",
                     layerId = ~`NAME_1`,
                     weight = 1,
                     popup = countryPopup)
             } else {
-                CHNMapShapeOut <- merge(
-                    CHNMapShape,
+                mapShapeCHNOut <- merge(
+                    mapShapeCHN,
                     chnMapArea(),
                     by.x = "NAME_1",
                     by.y = "Area",
                     sort = FALSE)
                 countryPopup <- getCountryPopup(
-                    CHNMapShapeOut$`NAME_1`,
+                    mapShapeCHNOut$`NAME_1`,
                     input$chnmvar,
-                    round(CHNMapShapeOut[[indicator1]], 2)
+                    round(mapShapeCHNOut[[indicator1]], 2)
                 )
-                leafletProxy("CHNMap", data = CHNMapShapeOut) %>%
+                leafletProxy("CHNMap", data = mapShapeCHNOut) %>%
                 addPolygons(
-                    fillColor = palCHNMapCNT()(log((CHNMapShapeOut[[indicator1]])+1)),
+                    fillColor = palCHNMapCNT()(log((mapShapeCHNOut[[indicator1]]) + 1)),
                     fillOpacity = 1,
                     layerId = ~`NAME_1`,
                     color = "#BDBDC3",
@@ -537,7 +537,7 @@ server <- function(input, output, session) {
 
     ## USAMap
     output$USAMap <- renderLeaflet({
-        leaflet(data = USAMapShape) %>%
+        leaflet(data = mapShapeUSA) %>%
         setView(0, 30, zoom = 3)
     })
 
@@ -546,9 +546,9 @@ server <- function(input, output, session) {
         print("USA Map Calculation...")
         if (!is.null(input$usamcs)) {
             if (input$usamcs == constChoiceConf) {
-                resData <- transformToUSAGeoMapDataset(rawDataConf, USAMapShape)
+                resData <- transformToUSAGeoMapDataset(rawDataConf, mapShapeUSA)
             } else if(input$usamcs == constChoiceDead) {
-                resData <- transformToUSAGeoMapDataset(rawDataDead, USAMapShape)
+                resData <- transformToUSAGeoMapDataset(rawDataDead, mapShapeUSA)
             }
             return(resData)
         }

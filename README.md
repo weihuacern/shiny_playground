@@ -14,10 +14,8 @@
 cd data
 wget https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_sovereignty.zip
 unzip ne_50m_admin_0_sovereignty.zip -d ne_50m_admin_0_sovereignty
-Rscript WorldMapShapeDataGen.R
+Rscript --vanilla GeoMapShapeDataGen.R GeoMapWorld
 ```
-
-A file named WorldMapShape.RData will be generated.
 
 - To generate country map shape data:
 
@@ -31,10 +29,10 @@ unzip CHN_adm.zip -d CHN_adm
 unzip HKG_adm.zip -d HKG_adm
 unzip MAC_adm.zip -d MAC_adm
 unzip TWN_adm.zip -d TWN_adm
-Rscript CHNMapShapeDataGen.R
+Rscript --vanilla GeoMapShapeDataGen.R GeoMapCHN
 wget http://biogeo.ucdavis.edu/data/diva/adm/USA_adm.zip
 unzip USA_adm.zip -d USA_adm
-Rscript USAMapShapeDataGen.R
+Rscript --vanilla GeoMapShapeDataGen.R GeoMapUSA
 ```
 
 ## Instruction
