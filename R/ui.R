@@ -82,11 +82,23 @@ ui <- dashboardPage(
                 h2("COVID-19: World Table"),
                 DT::dataTableOutput(constIDTableWorld)
             ),
+            # Table, CHN
+            tabItem(
+                tabName = "chn-table",
+                h2("COVID-19: China Table"),
+                DT::dataTableOutput(constIDTableCHN)
+            ),
+            # Table, USA
+            tabItem(
+                tabName = "usa-table",
+                h2("COVID-19: United States of America Table"),
+                DT::dataTableOutput(constIDTableUSA)
+            ),
             # Time series, World
             tabItem(
                 tabName = "world-ts",
                 h2("COVID-19: World Time Series"),
-                uiOutput("WorldTSSelection"),
+                uiOutput(constIDTSSelWorld),
                 fluidRow(
                     box(
                         h3("Confirmed Cases"),

@@ -14,7 +14,7 @@
 cd data
 wget https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/cultural/ne_50m_admin_0_sovereignty.zip
 unzip ne_50m_admin_0_sovereignty.zip -d ne_50m_admin_0_sovereignty
-Rscript --vanilla GeoMapShapeDataGen.R GeoMapWorld
+Rscript --vanilla geoMapShape.R GeoMapWorld
 ```
 
 - To generate country map shape data:
@@ -29,10 +29,10 @@ unzip CHN_adm.zip -d CHN_adm
 unzip HKG_adm.zip -d HKG_adm
 unzip MAC_adm.zip -d MAC_adm
 unzip TWN_adm.zip -d TWN_adm
-Rscript --vanilla GeoMapShapeDataGen.R GeoMapCHN
+Rscript --vanilla geoMapShape.R GeoMapCHN
 wget http://biogeo.ucdavis.edu/data/diva/adm/USA_adm.zip
 unzip USA_adm.zip -d USA_adm
-Rscript --vanilla GeoMapShapeDataGen.R GeoMapUSA
+Rscript --vanilla geoMapShape.R GeoMapUSA
 ```
 
 ## Instruction
@@ -70,6 +70,7 @@ R -e "shiny::runGitHub('shiny_playground', 'weihuacern', subdir = 'R/')"
 - Optimize World Map Code (Done)
 - Add Time Series Code (Done)
 - Refactor with R6 OOP
+- Accelerate with parallel computation
 - Dockerize
 - Publish
 - Time Series database

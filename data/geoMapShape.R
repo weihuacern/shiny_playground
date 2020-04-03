@@ -1,4 +1,5 @@
 library(R6)
+
 library(rgdal)
 
 clsNameGeoMapShape <- "geoMapShape"

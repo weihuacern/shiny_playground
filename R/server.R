@@ -7,17 +7,32 @@ library(viridis)
 library(tidyverse)
 
 source("constants.R")
-source("utils.R")
+source("rawDataLoader.R")
+source("geoMapDataTransformer.R")
+source("tableDataTransformer.R")
+source("tsDataTransformer.R")
 
-## Load data into memory first, save network IO
-urlStrConf <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-urlStrDead <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
-#urlStrRecv <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
-#urlStrConfUSA <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
-#urlStrDeadUSA <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
+## Load raw data into memory first, save network IO
+cls <- rawDataLoader$new(dataTypeJHUConfGlobal)
+rawDataJHUConfGlobal <- cls$loadRawData()
+rm(cls)
+cls <- rawDataLoader$new(dataTypeJHUDeadGlobal)
+rawDataJHUDeadGlobal <- cls$loadRawData()
+rm(cls)
+cls <- rawDataLoader$new(dataTypeJHURecvGlobal)
+rawDataJHURecvGlobal <- cls$loadRawData()
+rm(cls)
 
-rawDataConf <- getJHUCSSEDataset(urlStrConf)
-rawDataDead <- getJHUCSSEDataset(urlStrDead)
+## Transform static data
+### tableData, World
+tableDataWorld <- transformToWorldTableDataset(
+    rawDataJHUConfGlobal,
+    rawDataJHUDeadGlobal
+)
+
+## tsData, World
+tsDataWorldConf <- transformToWorldTSDataset(rawDataJHUConfGlobal)
+tsDataWorldDead <- transformToWorldTSDataset(rawDataJHUDeadGlobal)
 
 arrondi <- function(x) 10^ (ceiling(log10(x)))
 
@@ -187,21 +202,20 @@ getCountryPopup <- function(popupCtyName, popupVarName, popupNum) {
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
     # Table Table View
-    worldTableData <- transformToWorldTableDataset(rawDataConf, rawDataDead)
     output[[constIDTableWorld]] <- DT::renderDataTable({
-        DT::datatable(worldTableData)
+        DT::datatable(tableDataWorld)
     })
 
-    # Table Time Series
-    ## World TS
-    worldTSDataConf <- transformToWorldTSDataset(rawDataConf)
-    worldTSDataDead <- transformToWorldTSDataset(rawDataDead)
-    worldDefCountryList <- c("US", "Italy", "Spain", "China", "Germany", "France")
-    output$WorldTSSelection <- shiny::renderUI({
+    worldDefCountryList <- c(
+        "United States of America",
+        "Italy", "Spain", "China",
+        "Germany", "France"
+    )
+    output[[constIDTSSelWorld]] <- shiny::renderUI({
         prettyCheckboxGroup(
             inputId = "wtssel",
             label = "Country/Region to select:",
-            choices = names(worldTSDataConf),
+            choices = names(tsDataWorldConf),
             selected = worldDefCountryList,
             shape = "round", status = "info",
             fill = TRUE, inline = TRUE)
@@ -210,14 +224,14 @@ server <- function(input, output, session) {
     observe({
         output[[constIDTSWorldConf]] <- renderDygraph({
             dygraph(
-                worldTSDataConf[, input$wtssel]) %>%
+                tsDataWorldConf[, input$wtssel]) %>%
             dyOptions(stackedGraph = FALSE) %>%
             dyRangeSelector(height = 50)
         })
 
         output[[constIDTSWorldDead]] <- renderDygraph({
             dygraph(
-                worldTSDataDead[, input$wtssel]) %>%
+                tsDataWorldDead[, input$wtssel]) %>%
             dyOptions(stackedGraph = FALSE) %>%
             dyRangeSelector(height = 50)
         })
@@ -226,7 +240,7 @@ server <- function(input, output, session) {
     # Table GeoMap
     ## Preparation for all GeoMaps
     ### Derive date range
-    stdDataset <- rawDataConf
+    stdDataset <- rawDataJHUConfGlobal
     daysStr <- names(stdDataset %>% dplyr::select(contains("/")))
     daysDate <- as.Date(daysStr, "%m/%d/%y")
     daysDate <- daysDate[!is.na(daysDate)]
@@ -242,9 +256,9 @@ server <- function(input, output, session) {
         print("World Map Calculation...")
         if (!is.null(input$wmcs)) {
             if (input$wmcs == constChoiceConf) {
-                resData <- transformToWorldGeoMapDataset(rawDataConf, mapShapeWorld)
+                resData <- transformToWorldGeoMapDataset(rawDataJHUConfGlobal, mapShapeWorld)
             } else if (input$wmcs == constChoiceDead) {
-                resData <- transformToWorldGeoMapDataset(rawDataDead, mapShapeWorld)
+                resData <- transformToWorldGeoMapDataset(rawDataJHUDeadGlobal, mapShapeWorld)
             }
             return(resData)
         }
@@ -386,7 +400,7 @@ server <- function(input, output, session) {
                     popup = countryPopup)
             } else {
                 worldMapAreaSel <- worldMapArea() %>% dplyr::select(Area, Pop)
-                if(indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
+                if (indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]]
                 } else {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
@@ -427,9 +441,9 @@ server <- function(input, output, session) {
         print("CHN Map Calculation...")
         if (!is.null(input$chnmcs)) {
             if (input$chnmcs == constChoiceConf) {
-                resData <- transformToCHNGeoMapDataset(rawDataConf, mapShapeCHN)
-            } else if(input$chnmcs == constChoiceDead) {
-                resData <- transformToCHNGeoMapDataset(rawDataDead, mapShapeCHN)
+                resData <- transformToCHNGeoMapDataset(rawDataJHUConfGlobal, mapShapeCHN)
+            } else if (input$chnmcs == constChoiceDead) {
+                resData <- transformToCHNGeoMapDataset(rawDataJHUDeadGlobal, mapShapeCHN)
             }
             return(resData)
         }
@@ -546,9 +560,9 @@ server <- function(input, output, session) {
         print("USA Map Calculation...")
         if (!is.null(input$usamcs)) {
             if (input$usamcs == constChoiceConf) {
-                resData <- transformToUSAGeoMapDataset(rawDataConf, mapShapeUSA)
-            } else if(input$usamcs == constChoiceDead) {
-                resData <- transformToUSAGeoMapDataset(rawDataDead, mapShapeUSA)
+                resData <- transformToUSAGeoMapDataset(rawDataJHUConfGlobal, mapShapeUSA)
+            } else if (input$usamcs == constChoiceDead) {
+                resData <- transformToUSAGeoMapDataset(rawDataJHUDeadGlobal, mapShapeUSA)
             }
             return(resData)
         }

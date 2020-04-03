@@ -19,6 +19,9 @@ constTypeCHNGeoMap <- "CHNGEOMAP"
 constTypeUSAGeoMap <- "USAGEOMAP"
 
 ## ID related
-constIDTableWorld <- "WorldTable"
-constIDTSWorldConf <- "WorldTSConf"
-constIDTSWorldDead <- "WorldTSDead"
+constIDTableWorld <- "tableWorld"
+constIDTableCHN <- "tableCHN"
+constIDTableUSA <- "tableUSA"
+constIDTSWorldConf <- "tsConfWorld"
+constIDTSWorldDead <- "tsDeadWorld"
+constIDTSSelWorld <- "tsSelWorld"
