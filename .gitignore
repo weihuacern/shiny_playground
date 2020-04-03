@@ -1,9 +1,10 @@
-data/ne_50m_admin_0_sovereignty.zip
-data/ne_50m_admin_0_sovereignty/*
-data/CHN_adm.zip
-data/CHN_adm/*
-data/USA_adm.zip
-data/USA_adm/*
+R/data/ne_50m_admin_0_sovereignty.zip
+R/data/ne_50m_admin_0_sovereignty/*
+R/data/CHN_adm.zip
+R/data/CHN_adm/*
+R/data/USA_adm.zip
+R/data/USA_adm/*
+R/rsconnect
 R/.Rproj.user
 R/.Rhistory
 .Rproj.user

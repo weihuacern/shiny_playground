@@ -110,6 +110,38 @@ ui <- dashboardPage(
                     )
                 )
             ),
+            # Time series, CHN
+            tabItem(
+                tabName = "chn-ts",
+                h2("COVID-19: China Time Series"),
+                uiOutput(constIDTSSelCHN),
+                fluidRow(
+                    box(
+                        h3("Confirmed Cases"),
+                        dygraphOutput(constIDTSCHNConf)
+                    ),
+                    box(
+                        h3("Dead Cases"),
+                        dygraphOutput(constIDTSCHNDead)
+                    )
+                )
+            ),
+            # Time series, USA
+            tabItem(
+                tabName = "usa-ts",
+                h2("COVID-19: United States of America Time Series"),
+                uiOutput(constIDTSSelUSA),
+                fluidRow(
+                    box(
+                        h3("Confirmed Cases"),
+                        dygraphOutput(constIDTSUSAConf)
+                    ),
+                    box(
+                        h3("Dead Cases"),
+                        dygraphOutput(constIDTSUSADead)
+                    )
+                )
+            ),
             # Geomap, World
             tabItem(
                 tabName = "world-geomap",

@@ -29,6 +29,11 @@ tableDataWorld <- transformToWorldTableDataset(
     rawDataJHUConfGlobal,
     rawDataJHUDeadGlobal
 )
+### tableData, CHN
+tableDataCHN <- transformToCHNTableDataset(
+    rawDataJHUConfGlobal,
+    rawDataJHUDeadGlobal
+)
 
 ## tsData, World
 tsDataWorldConf <- transformToWorldTSDataset(rawDataJHUConfGlobal)
@@ -204,6 +209,9 @@ server <- function(input, output, session) {
     # Table Table View
     output[[constIDTableWorld]] <- DT::renderDataTable({
         DT::datatable(tableDataWorld)
+    })
+    output[[constIDTableCHN]] <- DT::renderDataTable({
+        DT::datatable(tableDataCHN)
     })
 
     worldDefCountryList <- c(

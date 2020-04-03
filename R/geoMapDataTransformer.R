@@ -3,7 +3,7 @@ library(reshape)
 library(tidyverse)
 
 # Object: mapShapeWorld
-load("../data/mapShapeWorld.RData")
+load("data/mapShapeWorld.RData")
 
 transformToWorldGeoMapDataset <- function(JHUCSSEDf, mapShapeWorldDf) {
     JHUCSSEDf$Area <- as.character(
@@ -39,7 +39,7 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, mapShapeWorldDf) {
 }
 
 # Object: mapShapeCHN.RData
-load("../data/mapShapeCHN.RData")
+load("data/mapShapeCHN.RData")
 
 transformToCHNGeoMapDataset <- function(JHUCSSEDf, mapShapeCHNDf) {
     # Select China
@@ -76,7 +76,7 @@ transformToCHNGeoMapDataset <- function(JHUCSSEDf, mapShapeCHNDf) {
 }
 
 # Object: mapShapeUSA.RData
-load("../data/mapShapeUSA.RData")
+load("data/mapShapeUSA.RData")
 
 transformToUSAGeoMapDataset <- function(JHUCSSEDf, mapShapeUSADf) {
     # Remove duplication, Province/State with Kitsap, WA and WA
