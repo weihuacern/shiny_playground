@@ -146,7 +146,7 @@ ui <- dashboardPage(
             tabItem(
                 tabName = "world-geomap",
                 h2("COVID-19: World Map"),
-                leafletOutput("WorldMap", height = 600),
+                leafletOutput(constIDGeoMapWorld, height = 600),
                 fluidRow(
                     box(
                         selectInput(
@@ -154,12 +154,12 @@ ui <- dashboardPage(
                             "Confirmed or Dead?",
                             choices = c(constChoiceConf, constChoiceDead),
                             selected = constChoiceConf),
-                        uiOutput("WorldMapSlider")
+                        uiOutput(constIDGeoMapSldWorld)
                     ),
                     box(
                         helpText("Checking Country/Region details by single click on the map."),
-                        uiOutput("WorldMapSelection"),
-                        checkboxInput("WorldMapLegend", "Show legend", TRUE)
+                        uiOutput(constIDGeoMapSelWorld),
+                        checkboxInput(constIDGeoMapLegWorld, "Show legend", TRUE)
                     )
                 )
             ),
@@ -167,7 +167,7 @@ ui <- dashboardPage(
             tabItem(
                 tabName = "chn-geomap",
                 h2("COVID-19: China Map"),
-                leafletOutput("CHNMap", height = 600),
+                leafletOutput(constIDGeoMapCHN, height = 600),
                 fluidRow(
                     box(
                         selectInput(
@@ -175,12 +175,12 @@ ui <- dashboardPage(
                             "Confirmed, Dead or Revovered?",
                             choices = c(constChoiceConf, constChoiceDead),
                             selected = constChoiceConf),
-                        uiOutput("CHNMapSlider")
+                        uiOutput(constIDGeoMapSldCHN)
                     ),
                     box(
                         helpText("Checking Provinces details by single click on the map."),
-                        uiOutput("CHNMapSelection"),
-                        checkboxInput("CHNMapLegend", "Show legend", TRUE)
+                        uiOutput(constIDGeoMapSelCHN),
+                        checkboxInput(constIDGeoMapLegCHN, "Show legend", TRUE)
                     )
                 )
             ),
@@ -188,7 +188,7 @@ ui <- dashboardPage(
             tabItem(
                 tabName = "usa-geomap",
                 h2("COVID-19: United States of America Map"),
-                leafletOutput("USAMap", height = 600),
+                leafletOutput(constIDGeoMapUSA, height = 600),
                 fluidRow(
                     box(
                         selectInput(
@@ -196,12 +196,12 @@ ui <- dashboardPage(
                             "Confirmed, Dead or Revovered?",
                             choices = c(constChoiceConf, constChoiceDead),
                             selected = constChoiceConf),
-                        uiOutput("USAMapSlider")
+                        uiOutput(constIDGeoMapSldUSA)
                     ),
                     box(
                         helpText("Checking States details by single click on the map."),
-                        uiOutput("USAMapSelection"),
-                        checkboxInput("USAMapLegend", "Show legend", TRUE)
+                        uiOutput(constIDGeoMapSelUSA),
+                        checkboxInput(constIDGeoMapLegUSA, "Show legend", TRUE)
                     )
                 )
             )

@@ -11,6 +11,7 @@ source("rawDataLoader.R")
 source("geoMapDataTransformer.R")
 source("tableDataTransformer.R")
 source("tsDataTransformer.R")
+source("tsUIRenderUtils.R")
 
 ## Load raw data into memory first, save network IO
 cls <- rawDataLoader$new(dataTypeJHUConfGlobal)
@@ -35,9 +36,13 @@ tableDataCHN <- transformToCHNTableDataset(
     rawDataJHUDeadGlobal
 )
 
-## tsData, World
+### tsData, World
 tsDataWorldConf <- transformToWorldTSDataset(rawDataJHUConfGlobal)
 tsDataWorldDead <- transformToWorldTSDataset(rawDataJHUDeadGlobal)
+
+### tsData, CHN
+tsDataCHNConf <- transformToCHNTSDataset(rawDataJHUConfGlobal)
+tsDataCHNDead <- transformToCHNTSDataset(rawDataJHUDeadGlobal)
 
 arrondi <- function(x) 10^ (ceiling(log10(x)))
 
@@ -214,43 +219,36 @@ server <- function(input, output, session) {
         DT::datatable(tableDataCHN)
     })
 
-    defTSSelListWorld <- c(
-        "United States of America",
-        "Italy", "Spain", "China",
-        "Germany", "France"
-    )
-    output[[constIDTSSelWorld]] <- shiny::renderUI({
-        prettyCheckboxGroup(
-            inputId = "wtssel",
-            label = "Country/Region to select:",
-            choices = names(tsDataWorldConf),
-            selected = defTSSelListWorld,
-            shape = "round", status = "info",
-            fill = TRUE, inline = TRUE)
+    # Table Time series View
+    ## Time series, World
+    output[[constIDTSSelWorld]] <- tsSelectionUIRender(inputIDTSSelWorld, names(tsDataWorldConf))
+    tsWorldConfUIObj <- shiny::reactive({
+        sList <- input[[inputIDTSSelWorld]]
+        return(tsGraphUIRender(tsDataWorldConf, sList))
+    })
+    tsWorldDeadUIObj <- shiny::reactive({
+        sList <- input[[inputIDTSSelWorld]]
+        return(tsGraphUIRender(tsDataWorldDead, sList))
+    })
+    ## Time series, CHN
+    output[[constIDTSSelCHN]] <- tsSelectionUIRender(inputIDTSSelCHN, names(tsDataCHNConf))
+    tsCHNConfUIObj <- shiny::reactive({
+        sList <- input[[inputIDTSSelCHN]]
+        return(tsGraphUIRender(tsDataCHNConf, sList))
+    })
+    tsCHNDeadUIObj <- shiny::reactive({
+        sList <- input[[inputIDTSSelCHN]]
+        return(tsGraphUIRender(tsDataCHNDead, sList))
+    })
+    ## Time series, observe
+    shiny::observe({
+        output[[constIDTSWorldConf]] <- tsWorldConfUIObj()
+        output[[constIDTSWorldDead]] <- tsWorldDeadUIObj()
+        output[[constIDTSCHNConf]] <- tsCHNConfUIObj()
+        output[[constIDTSCHNDead]] <- tsCHNDeadUIObj()
     })
 
-    #defTSSelListCHN <- c(
-    #    "Hubei",
-    #    "Guangdong", "Henan"
-    #)
-
-    observe({
-        output[[constIDTSWorldConf]] <- renderDygraph({
-            dygraph(
-                tsDataWorldConf[, input$wtssel]) %>%
-            dyOptions(stackedGraph = FALSE) %>%
-            dyRangeSelector(height = 50)
-        })
-
-        output[[constIDTSWorldDead]] <- renderDygraph({
-            dygraph(
-                tsDataWorldDead[, input$wtssel]) %>%
-            dyOptions(stackedGraph = FALSE) %>%
-            dyRangeSelector(height = 50)
-        })
-    })
-
-    # Table GeoMap
+    # Table GeoMap View
     ## Preparation for all GeoMaps
     ### Derive date range
     stdDataset <- rawDataJHUConfGlobal
@@ -259,7 +257,7 @@ server <- function(input, output, session) {
     daysDate <- daysDate[!is.na(daysDate)]
 
     ## WorldMap
-    output$WorldMap <- renderLeaflet({
+    output[[constIDGeoMapWorld]] <- renderLeaflet({
         leaflet(data = mapShapeWorld) %>%
         setView(0, 30, zoom = 3)
     })
@@ -281,13 +279,13 @@ server <- function(input, output, session) {
     worldMapSlider <- reactive(
         getGeoMapSlider(input$wmvar, daysDate, constTypeWorldGeoMap)
     )
-    output$WorldMapSlider <- shiny::renderUI(worldMapSlider())
+    output[[constIDGeoMapSldWorld]] <- shiny::renderUI(worldMapSlider())
 
     ### Set World Map Selection
     worldMapSelection <- reactive(
         getGeoMapSelection(input$wmcs, constTypeWorldGeoMap)
     )
-    output$WorldMapSelection <- shiny::renderUI(worldMapSelection())
+    output[[constIDGeoMapSelWorld]] <- shiny::renderUI(worldMapSelection())
 
     ### Set WorldMapLegend
     maxCNT <- shiny::reactive(getLegendMax(worldMapArea(), constVarTSCntConfNew, constTypeWorldGeoMap))
@@ -298,9 +296,9 @@ server <- function(input, output, session) {
     observe({
         if (is.null(input$wmvar)) {
         } else {
-            proxy <- leaflet::leafletProxy("WorldMap", data = mapShapeWorld)
+            proxy <- leaflet::leafletProxy(constIDGeoMapWorld, data = mapShapeWorld)
             proxy %>% leaflet::clearControls()
-            if (input$WorldMapLegend) {
+            if (input[[constIDGeoMapLegWorld]]) {
                 if (input$wmvar %in% c(
                     constVarTSRatConfNew,
                     constVarTSRatConfTtl,
@@ -357,7 +355,7 @@ server <- function(input, output, session) {
                     input$wmvar,
                     round(mapShapeWorldOut[[indicator1]] / mapShapeWorldOut$Pop * 1000000, 2)
                 )
-                leafletProxy("WorldMap", data = mapShapeWorldOut) %>%
+                leafletProxy(constIDGeoMapWorld, data = mapShapeWorldOut) %>%
                 addPolygons(
                     fillColor = palRAT()(log((mapShapeWorldOut[[indicator1]] / mapShapeWorldOut$Pop * 1000000) + 1)),
                     layerId = ~NAME,
@@ -377,7 +375,7 @@ server <- function(input, output, session) {
                     input$wmvar,
                     round(mapShapeWorldOut[[indicator1]], 2)
                 )
-                leafletProxy("WorldMap", data = mapShapeWorldOut) %>%
+                leafletProxy(constIDGeoMapWorld, data = mapShapeWorldOut) %>%
                 addPolygons(
                     fillColor = palCNT()(log((mapShapeWorldOut[[indicator1]]) + 1)),
                     fillOpacity = 1,
@@ -403,7 +401,7 @@ server <- function(input, output, session) {
                     input$wmvar,
                     mapShapeWorldOut$CALCNUM
                 )
-                leafletProxy("WorldMap", data = mapShapeWorldOut) %>%
+                leafletProxy(constIDGeoMapWorld, data = mapShapeWorldOut) %>%
                 addPolygons(
                     fillColor = palCNT()(log(mapShapeWorldOut$CALCNUM + 1)),
                     fillOpacity = 1,
@@ -430,7 +428,7 @@ server <- function(input, output, session) {
                     input$wmvar,
                     mapShapeWorldOut$CALCNUM
                 )
-                leafletProxy("WorldMap", data = mapShapeWorldOut) %>%
+                leafletProxy(constIDGeoMapWorld, data = mapShapeWorldOut) %>%
                 addPolygons(
                     fillColor = palRAT()(log(mapShapeWorldOut$CALCNUM / mapShapeWorldOut$Pop * 1000000 + 1)),
                     fillOpacity = 1,
@@ -444,7 +442,7 @@ server <- function(input, output, session) {
 
     ## CHNMap
     ### CHNMap frame with init coordinate
-    output$CHNMap <- renderLeaflet({
+    output[[constIDGeoMapCHN]] <- renderLeaflet({
         leaflet(data = mapShapeCHN) %>%
         setView(105, 35, zoom = 4)
     })
@@ -466,24 +464,24 @@ server <- function(input, output, session) {
     chnMapSlider <- reactive(
         getGeoMapSlider(input$chnmvar, daysDate, constTypeCHNGeoMap)
     )
-    output$CHNMapSlider <- shiny::renderUI(chnMapSlider())
+    output[[constIDGeoMapSldCHN]] <- shiny::renderUI(chnMapSlider())
 
     ### Set CHN Map Selection
     chnMapSelection <- reactive(
         getGeoMapSelection(input$chnmcs, constTypeCHNGeoMap)
     )
-    output$CHNMapSelection <- shiny::renderUI(chnMapSelection())
+    output[[constIDGeoMapSelCHN]] <- shiny::renderUI(chnMapSelection())
 
-    ### Set CHNMapLegend
+    ### Set constIDGeoMapLegCHN
     maxCHNMapCNT <- shiny::reactive(getLegendMax(chnMapArea(), constVarTSCntConfNew, constTypeCHNGeoMap))
     palCHNMapCNT <- shiny::reactive(getLegendPal(maxCHNMapCNT()))
 
     observe({
         if (is.null(input$chnmvar)) {
         } else {
-            proxy <- leaflet::leafletProxy("CHNMap", data = mapShapeCHN)
+            proxy <- leaflet::leafletProxy(constIDGeoMapCHN, data = mapShapeCHN)
             proxy %>% leaflet::clearControls()
-            if (input$CHNMapLegend) {
+            if (input[[constIDGeoMapLegCHN]]) {
                 proxy %>% leaflet::addLegend(
                     position = "bottomright",
                     pal = palCHNMapCNT(),
@@ -530,7 +528,7 @@ server <- function(input, output, session) {
                     input$chnmvar,
                     mapShapeCHNOut$CALCNUM
                 )
-                leafletProxy("CHNMap", data = mapShapeCHNOut) %>%
+                leafletProxy(constIDGeoMapCHN, data = mapShapeCHNOut) %>%
                 addPolygons(
                     fillColor = palCHNMapCNT()(log(mapShapeCHNOut$CALCNUM + 1)),
                     fillOpacity = 1,
@@ -550,7 +548,7 @@ server <- function(input, output, session) {
                     input$chnmvar,
                     round(mapShapeCHNOut[[indicator1]], 2)
                 )
-                leafletProxy("CHNMap", data = mapShapeCHNOut) %>%
+                leafletProxy(constIDGeoMapCHN, data = mapShapeCHNOut) %>%
                 addPolygons(
                     fillColor = palCHNMapCNT()(log((mapShapeCHNOut[[indicator1]]) + 1)),
                     fillOpacity = 1,
@@ -563,7 +561,7 @@ server <- function(input, output, session) {
     })
 
     ## USAMap
-    output$USAMap <- renderLeaflet({
+    output[[constIDGeoMapUSA]] <- renderLeaflet({
         leaflet(data = mapShapeUSA) %>%
         setView(0, 30, zoom = 3)
     })
@@ -585,11 +583,11 @@ server <- function(input, output, session) {
     usaMapSlider <- reactive(
         getGeoMapSlider(input$usamvar, daysDate, constTypeUSAGeoMap)
     )
-    output$USAMapSlider <- shiny::renderUI(usaMapSlider())
+    output[[constIDGeoMapSldUSA]] <- shiny::renderUI(usaMapSlider())
 
     ### Set USA Map Selection
     usaMapSelection <- reactive(
         getGeoMapSelection(input$usamcs, constTypeUSAGeoMap)
     )
-    output$USAMapSelection <- shiny::renderUI(usaMapSelection())
+    output[[constIDGeoMapSelUSA]] <- shiny::renderUI(usaMapSelection())
 }

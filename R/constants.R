@@ -19,9 +19,11 @@ constTypeCHNGeoMap <- "CHNGEOMAP"
 constTypeUSAGeoMap <- "USAGEOMAP"
 
 ## ID related
+### Table
 constIDTableWorld <- "tableWorld"
 constIDTableCHN <- "tableCHN"
 constIDTableUSA <- "tableUSA"
+### Time series
 constIDTSWorldConf <- "tsConfWorld"
 constIDTSWorldDead <- "tsDeadWorld"
 constIDTSSelWorld <- "tsSelWorld"
@@ -31,6 +33,16 @@ constIDTSSelCHN <- "tsSelCHN"
 constIDTSUSAConf <- "tsConfUSA"
 constIDTSUSADead <- "tsDeadUSA"
 constIDTSSelUSA <- "tsSelUSA"
+### GeoMap
 constIDGeoMapWorld <- "geoMapWorld"
+constIDGeoMapSelWorld <- "geoMapSelWorld" # Selection on Confirmed/Dead...
+constIDGeoMapSldWorld <- "geoMapSldWorld" # Slider on date
+constIDGeoMapLegWorld <- "geoMapLegWorld" # Legend on GeoMap
 constIDGeoMapCHN <- "geoMapCHN"
+constIDGeoMapSelCHN <- "geoMapSelCHN" # Selection on Confirmed/Dead...
+constIDGeoMapSldCHN <- "geoMapSldCHN" # Slider on date
+constIDGeoMapLegCHN <- "geoMapLegCHN" # Legend on GeoMap
 constIDGeoMapUSA <- "geoMapUSA"
+constIDGeoMapSelUSA <- "geoMapSelUSA" # Selection on Confirmed/Dead...
+constIDGeoMapSldUSA <- "geoMapSldUSA" # Slider on date
+constIDGeoMapLegUSA <- "geoMapLegUSA" # Legend on GeoMap
