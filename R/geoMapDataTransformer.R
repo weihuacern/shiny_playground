@@ -51,8 +51,6 @@ transformToCHNGeoMapDataset <- function(JHUCSSEDf, mapShapeCHNDf) {
         ]
     )
 
-    #print(JHUCSSEDf$`Province/State`[is.na(JHUCSSEDf$Area)])
-
     GeoMapDf <- JHUCSSEDf %>% dplyr::select(
         -`Province/State`,
         -Lat, -Long,
@@ -93,8 +91,6 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, mapShapeUSADf) {
             )
         ]
     )
-
-    #print(head(JHUCSSEDf, 4))
 
     GeoMapDf <- JHUCSSEDf %>% dplyr::select(
         -`Province/State`,

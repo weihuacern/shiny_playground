@@ -214,7 +214,7 @@ server <- function(input, output, session) {
         DT::datatable(tableDataCHN)
     })
 
-    worldDefCountryList <- c(
+    defTSSelListWorld <- c(
         "United States of America",
         "Italy", "Spain", "China",
         "Germany", "France"
@@ -224,10 +224,15 @@ server <- function(input, output, session) {
             inputId = "wtssel",
             label = "Country/Region to select:",
             choices = names(tsDataWorldConf),
-            selected = worldDefCountryList,
+            selected = defTSSelListWorld,
             shape = "round", status = "info",
             fill = TRUE, inline = TRUE)
     })
+
+    #defTSSelListCHN <- c(
+    #    "Hubei",
+    #    "Guangdong", "Henan"
+    #)
 
     observe({
         output[[constIDTSWorldConf]] <- renderDygraph({
