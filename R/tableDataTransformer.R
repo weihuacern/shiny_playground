@@ -10,8 +10,7 @@ transformToWorldTableDataset <- function(
 
     names(rawDataJHUConfGlobal)[names(rawDataJHUConfGlobal) == "Country/Region"] <- "area"
     tableConfList <- rawDataJHUConfGlobal %>% dplyr::select(
-        -`Province/State`,
-        -Lat, -Long) %>%
+        -`Province/State`) %>%
         group_by(area) %>%
         summarise_each(sum) %>%
         arrange(desc(!!sym(latestDate)))
@@ -25,8 +24,7 @@ transformToWorldTableDataset <- function(
 
     names(rawDataJHUDeadGlobal)[names(rawDataJHUDeadGlobal) == "Country/Region"] <- "area"
     tableDeadList <- rawDataJHUDeadGlobal %>% dplyr::select(
-        -`Province/State`,
-        -Lat, -Long) %>%
+        -`Province/State`) %>%
         group_by(area) %>%
         summarise_each(sum) %>%
         arrange(desc(!!sym(latestDate)))
@@ -66,8 +64,7 @@ transformToCHNTableDataset <- function(
 
     names(rawDataJHUConfCHN)[names(rawDataJHUConfCHN) == "Province/State"] <- "area"
     tableConfList <- rawDataJHUConfCHN %>% dplyr::select(
-        -`Country/Region`,
-        -Lat, -Long) %>%
+        -`Country/Region`) %>%
         group_by(area) %>%
         summarise_each(sum) %>%
         arrange(desc(!!sym(latestDate)))
@@ -81,8 +78,7 @@ transformToCHNTableDataset <- function(
 
     names(rawDataJHUDeadCHN)[names(rawDataJHUDeadCHN) == "Province/State"] <- "area"
     tableDeadList <- rawDataJHUDeadCHN %>% dplyr::select(
-        -`Country/Region`,
-        -Lat, -Long) %>%
+        -`Country/Region`) %>%
         group_by(area) %>%
         summarise_each(sum) %>%
         arrange(desc(!!sym(latestDate)))

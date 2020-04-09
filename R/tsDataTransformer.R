@@ -6,8 +6,7 @@ transformToWorldTSDataset <- function(rawDataJHUGlobal) {
     names(rawDataJHUGlobal)[names(rawDataJHUGlobal) == "Country/Region"] <- "area"
 
     tsDf <- rawDataJHUGlobal %>% dplyr::select(
-        -`Province/State`,
-        -Lat, -Long) %>%
+        -`Province/State`) %>%
         group_by(area) %>%
         summarise_each(sum)
     tsDf$area <- as.character(tsDf$area)
@@ -25,8 +24,7 @@ transformToCHNTSDataset <- function(rawDataJHUGlobal) {
     names(rawDataJHUCHN)[names(rawDataJHUCHN) == "Province/State"] <- "area"
 
     tsDf <- rawDataJHUCHN %>% dplyr::select(
-        -`Country/Region`,
-        -Lat, -Long) %>%
+        -`Country/Region`) %>%
         group_by(area) %>%
         summarise_each(sum)
     tsDf$area <- as.character(tsDf$area)

@@ -1,6 +1,7 @@
 library(R6)
 
 library(RCurl)
+library(stringr)
 
 clsNameRawDataLoader <- "rawDataLoader"
 
@@ -94,11 +95,22 @@ rawDataLoader <- R6Class(
                 ## Align Province/State to mapShapeCHN$`NAME_1`
                 data$`Province/State`[data$`Province/State` == "Inner Mongolia"] <- "Nei Mongol"
                 data$`Province/State`[data$`Province/State` == "Tibet"] <- "Xizang"
+
+                selCols <- stringr::str_subset(names(data), "Province|State|/")
+                data <- data[selCols]
             } else if (private$dataType %in% c(
                 dataTypeJHUConfUSA,
                 dataTypeJHUDeadUSA
                 )) {
                 # TODO
+                names(data)[names(data) == "Country_Region"] <- "Country/Region"
+                names(data)[names(data) == "Province_State"] <- "Province/State"
+                data$`Country/Region` <- as.character(data$`Country/Region`)
+                data$`Province/State` <- as.character(data$`Province/State`)
+                data$`Country/Region`[data$`Country/Region` == "US"] <- "United States of America"
+
+                selCols <- stringr::str_subset(names(data), "Province|State|/")
+                data <- data[selCols]
             }
 
             return(data)

@@ -224,21 +224,21 @@ server <- function(input, output, session) {
     output[[constIDTSSelWorld]] <- tsSelectionUIRender(inputIDTSSelWorld, names(tsDataWorldConf))
     tsWorldConfUIObj <- shiny::reactive({
         sList <- input[[inputIDTSSelWorld]]
-        return(tsGraphUIRender(tsDataWorldConf, sList))
+        return(tsGraphUIRender(tsDataWorldConf, sList, FALSE))
     })
     tsWorldDeadUIObj <- shiny::reactive({
         sList <- input[[inputIDTSSelWorld]]
-        return(tsGraphUIRender(tsDataWorldDead, sList))
+        return(tsGraphUIRender(tsDataWorldDead, sList, FALSE))
     })
     ## Time series, CHN
     output[[constIDTSSelCHN]] <- tsSelectionUIRender(inputIDTSSelCHN, names(tsDataCHNConf))
     tsCHNConfUIObj <- shiny::reactive({
         sList <- input[[inputIDTSSelCHN]]
-        return(tsGraphUIRender(tsDataCHNConf, sList))
+        return(tsGraphUIRender(tsDataCHNConf, sList, TRUE))
     })
     tsCHNDeadUIObj <- shiny::reactive({
         sList <- input[[inputIDTSSelCHN]]
-        return(tsGraphUIRender(tsDataCHNDead, sList))
+        return(tsGraphUIRender(tsDataCHNDead, sList, TRUE))
     })
     ## Time series, observe
     shiny::observe({

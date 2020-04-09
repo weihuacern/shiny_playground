@@ -17,7 +17,6 @@ transformToWorldGeoMapDataset <- function(JHUCSSEDf, mapShapeWorldDf) {
 
     GeoMapDf <- JHUCSSEDf %>% dplyr::select(
         -`Province/State`,
-        -Lat, -Long,
         -`Country/Region`) %>%
         group_by(Area) %>%
         summarise_each(sum)
@@ -53,7 +52,6 @@ transformToCHNGeoMapDataset <- function(JHUCSSEDf, mapShapeCHNDf) {
 
     GeoMapDf <- JHUCSSEDf %>% dplyr::select(
         -`Province/State`,
-        -Lat, -Long,
         -`Country/Region`) %>%
         group_by(Area) %>%
         summarise_each(sum)
@@ -94,7 +92,6 @@ transformToUSAGeoMapDataset <- function(JHUCSSEDf, mapShapeUSADf) {
 
     GeoMapDf <- JHUCSSEDf %>% dplyr::select(
         -`Province/State`,
-        -Lat, -Long,
         -`Country/Region`) %>%
         group_by(Area) %>%
         summarise_each(sum)

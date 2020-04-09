@@ -49,12 +49,13 @@ tsSelectionUIRender <- function(id, cList) {
     )
 }
 
-tsGraphUIRender <- function(tsData, sList) {
+tsGraphUIRender <- function(tsData, sList, ifLogy) {
     return(
         dygraphs::renderDygraph({
             dygraphs::dygraph(
                 tsData[, sList]) %>%
-            dygraphs::dyOptions(stackedGraph = FALSE, logscale = TRUE) %>%
+            dygraphs::dyLegend(show = "follow") %>%
+            dygraphs::dyOptions(stackedGraph = FALSE, logscale = ifLogy) %>%
             dygraphs::dyRangeSelector(height = 50)
         })
     )
