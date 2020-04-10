@@ -23,6 +23,12 @@ rm(cls)
 cls <- rawDataLoader$new(dataTypeJHURecvGlobal)
 rawDataJHURecvGlobal <- cls$loadRawData()
 rm(cls)
+cls <- rawDataLoader$new(dataTypeJHUConfUSA)
+rawDataJHUConfUSA <- cls$loadRawData()
+rm(cls)
+cls <- rawDataLoader$new(dataTypeJHUDeadUSA)
+rawDataJHUDeadUSA <- cls$loadRawData()
+rm(cls)
 
 ## Transform static data
 ### tableData, World
@@ -35,14 +41,21 @@ tableDataCHN <- transformToCHNTableDataset(
     rawDataJHUConfGlobal,
     rawDataJHUDeadGlobal
 )
+### tableData, USA
+tableDataUSA <- transformToUSATableDataset(
+    rawDataJHUConfUSA,
+    rawDataJHUDeadUSA
+)
 
 ### tsData, World
 tsDataWorldConf <- transformToWorldTSDataset(rawDataJHUConfGlobal)
 tsDataWorldDead <- transformToWorldTSDataset(rawDataJHUDeadGlobal)
-
 ### tsData, CHN
 tsDataCHNConf <- transformToCHNTSDataset(rawDataJHUConfGlobal)
 tsDataCHNDead <- transformToCHNTSDataset(rawDataJHUDeadGlobal)
+### tsData, USA
+tsDataUSAConf <- transformToUSATSDataset(rawDataJHUConfUSA)
+tsDataUSADead <- transformToUSATSDataset(rawDataJHUDeadUSA)
 
 arrondi <- function(x) 10^ (ceiling(log10(x)))
 
@@ -218,6 +231,9 @@ server <- function(input, output, session) {
     output[[constIDTableCHN]] <- DT::renderDataTable({
         DT::datatable(tableDataCHN)
     })
+    output[[constIDTableUSA]] <- DT::renderDataTable({
+        DT::datatable(tableDataUSA)
+    })
 
     # Table Time series View
     ## Time series, World
@@ -240,12 +256,24 @@ server <- function(input, output, session) {
         sList <- input[[inputIDTSSelCHN]]
         return(tsGraphUIRender(tsDataCHNDead, sList, TRUE))
     })
+    ## Time series, USA
+    output[[constIDTSSelUSA]] <- tsSelectionUIRender(inputIDTSSelUSA, names(tsDataUSAConf))
+    tsUSAConfUIObj <- shiny::reactive({
+        sList <- input[[inputIDTSSelUSA]]
+        return(tsGraphUIRender(tsDataUSAConf, sList, TRUE))
+    })
+    tsUSADeadUIObj <- shiny::reactive({
+        sList <- input[[inputIDTSSelUSA]]
+        return(tsGraphUIRender(tsDataUSADead, sList, TRUE))
+    })
     ## Time series, observe
     shiny::observe({
         output[[constIDTSWorldConf]] <- tsWorldConfUIObj()
         output[[constIDTSWorldDead]] <- tsWorldDeadUIObj()
         output[[constIDTSCHNConf]] <- tsCHNConfUIObj()
         output[[constIDTSCHNDead]] <- tsCHNDeadUIObj()
+        output[[constIDTSUSAConf]] <- tsUSAConfUIObj()
+        output[[constIDTSUSADead]] <- tsUSADeadUIObj()
     })
 
     # Table GeoMap View

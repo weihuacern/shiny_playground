@@ -102,7 +102,6 @@ rawDataLoader <- R6Class(
                 dataTypeJHUConfUSA,
                 dataTypeJHUDeadUSA
                 )) {
-                # TODO
                 names(data)[names(data) == "Country_Region"] <- "Country/Region"
                 names(data)[names(data) == "Province_State"] <- "Province/State"
                 data$`Country/Region` <- as.character(data$`Country/Region`)

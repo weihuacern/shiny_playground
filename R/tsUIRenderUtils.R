@@ -18,7 +18,9 @@ defTSSelListCHN <- c(
 )
 
 defTSSelListUSA <- c(
-    "New York"
+    "New York", "New Jersey",
+    "Michigan", "California",
+    "Pennsylvania", "Louisiana"
 )
 
 tsSelectionUIRender <- function(id, cList) {

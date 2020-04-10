@@ -103,3 +103,53 @@ transformToCHNTableDataset <- function(
     )
     return(tableDf)
 }
+
+transformToUSATableDataset <- function(
+    rawDataJHUConfUSA,
+    rawDataJHUDeadUSA
+) {
+    # Latest date and second latest date
+    latestDate <- (rev(names(rawDataJHUConfUSA))[1])
+    secondLatestDate <- (rev(names(rawDataJHUConfUSA))[2])
+
+    names(rawDataJHUConfUSA)[names(rawDataJHUConfUSA) == "Province/State"] <- "area"
+    tableConfList <- rawDataJHUConfUSA %>% dplyr::select(
+        -`Country/Region`) %>%
+        group_by(area) %>%
+        summarise_each(sum) %>%
+        arrange(desc(!!sym(latestDate)))
+    tableConfList$area <- as.character(tableConfList$area)
+    confVars <- c(area = "area", confCnt = latestDate, tmpCnt = secondLatestDate)
+    tableConfList <- dplyr::select(tableConfList, !!confVars)
+    tableConfList <- dplyr::mutate(tableConfList, newConfCnt = confCnt - tmpCnt)
+    tableConfList <- tableConfList %>%
+        dplyr::select(area, confCnt, newConfCnt)
+    tableConfList$area <- as.character(tableConfList$area)
+
+    names(rawDataJHUDeadUSA)[names(rawDataJHUDeadUSA) == "Province/State"] <- "area"
+    tableDeadList <- rawDataJHUDeadUSA %>% dplyr::select(
+        -`Country/Region`) %>%
+        group_by(area) %>%
+        summarise_each(sum) %>%
+        arrange(desc(!!sym(latestDate)))
+    tableDeadList$area <- as.character(tableDeadList$area)
+    deadVars <- c(area = "area", deadCnt = latestDate, tmpCnt = secondLatestDate)
+    tableDeadList <- dplyr::select(tableDeadList, !!deadVars)
+    tableDeadList <- dplyr::mutate(tableDeadList, newDeadCnt = deadCnt - tmpCnt)
+    tableDeadList <- tableDeadList %>%
+        dplyr::select(area, deadCnt, newDeadCnt)
+    tableDeadList$area <- as.character(tableDeadList$area)
+
+    tableDf <- left_join(
+        tableConfList, tableDeadList
+    )
+
+    tableDf <- tableDf %>% dplyr::rename(
+        "Province/State" = area,
+        "Confirmed Cases" = confCnt,
+        "New Confirmed Cases" = newConfCnt,
+        "Dead Cases" = deadCnt,
+        "New Dead Cases" = newDeadCnt
+    )
+    return(tableDf)
+}

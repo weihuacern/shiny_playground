@@ -36,3 +36,20 @@ transformToCHNTSDataset <- function(rawDataJHUGlobal) {
     tsData <- xts::xts(tsDf %>% dplyr::select(-time), order.by = tsDf$time)
     return(tsData)
 }
+
+transformToUSATSDataset <- function(rawDataJHUUSA) {
+    names(rawDataJHUUSA)[names(rawDataJHUUSA) == "Province/State"] <- "area"
+
+    tsDf <- rawDataJHUUSA %>% dplyr::select(
+        -`Country/Region`) %>%
+        group_by(area) %>%
+        summarise_each(sum)
+    tsDf$area <- as.character(tsDf$area)
+    tsDf <- reshape::melt(as.data.frame(tsDf), id = c("area"))
+    names(tsDf)[names(tsDf) == "variable"] <- "time"
+    names(tsDf)[names(tsDf) == "value"] <- "value"
+    tsDf$time <- as.Date(tsDf$time, format = "%m/%d/%y")
+    tsDf <- reshape::cast(tsDf, time ~ area, value = "value")
+    tsData <- xts::xts(tsDf %>% dplyr::select(-time), order.by = tsDf$time)
+    return(tsData)
+}
