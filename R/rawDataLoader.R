@@ -115,7 +115,7 @@ rawDataLoader <- R6Class(
             return(data)
         },
         finalize = function() {
-            message("Class destoryed...")
+            message(paste0("Class destoryed: ", clsNameRawDataLoader))
         }
     )
 )

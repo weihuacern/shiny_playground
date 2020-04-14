@@ -48,14 +48,20 @@ tableDataUSA <- transformToUSATableDataset(
 )
 
 ### tsData, World
-tsDataWorldConf <- transformToWorldTSDataset(rawDataJHUConfGlobal)
-tsDataWorldDead <- transformToWorldTSDataset(rawDataJHUDeadGlobal)
+cls <- tsDataTransformer$new(tsTransformTypeGlobal)
+tsDataWorldConf <- cls$transformData(rawDataJHUConfGlobal)
+tsDataWorldDead <- cls$transformData(rawDataJHUDeadGlobal)
+rm(cls)
 ### tsData, CHN
-tsDataCHNConf <- transformToCHNTSDataset(rawDataJHUConfGlobal)
-tsDataCHNDead <- transformToCHNTSDataset(rawDataJHUDeadGlobal)
+cls <- tsDataTransformer$new(tsTransformTypeCHN)
+tsDataCHNConf <- cls$transformData(rawDataJHUConfGlobal)
+tsDataCHNDead <- cls$transformData(rawDataJHUDeadGlobal)
+rm(cls)
 ### tsData, USA
-tsDataUSAConf <- transformToUSATSDataset(rawDataJHUConfUSA)
-tsDataUSADead <- transformToUSATSDataset(rawDataJHUDeadUSA)
+cls <- tsDataTransformer$new(tsTransformTypeUSA)
+tsDataUSAConf <- cls$transformData(rawDataJHUConfUSA)
+tsDataUSADead <- cls$transformData(rawDataJHUDeadUSA)
+rm(cls)
 
 arrondi <- function(x) 10^ (ceiling(log10(x)))
 
