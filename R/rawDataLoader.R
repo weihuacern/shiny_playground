@@ -96,7 +96,7 @@ rawDataLoader <- R6Class(
                 data$`Province/State`[data$`Province/State` == "Inner Mongolia"] <- "Nei Mongol"
                 data$`Province/State`[data$`Province/State` == "Tibet"] <- "Xizang"
 
-                selCols <- stringr::str_subset(names(data), "Province|State|/")
+                selCols <- stringr::str_subset(names(data), "Country|Province|/")
                 data <- data[selCols]
             } else if (private$dataType %in% c(
                 dataTypeJHUConfUSA,
@@ -108,11 +108,17 @@ rawDataLoader <- R6Class(
                 data$`Province/State` <- as.character(data$`Province/State`)
                 data$`Country/Region`[data$`Country/Region` == "US"] <- "United States of America"
 
-                selCols <- stringr::str_subset(names(data), "Province|State|/")
+                selCols <- stringr::str_subset(names(data), "Country|Province|/")
                 data <- data[selCols]
             }
 
             return(data)
+        },
+        getTSIndexfromRawData = function(data) {
+            tsIndexStr <- stringr::str_subset(names(data), "/")
+            tsIndex <- as.Date(tsIndexStr, "%m/%d/%y")
+            tsIndex <- tsIndex[!is.na(tsIndex)]
+            return(tsIndex)
         },
         finalize = function() {
             message(paste0("Class destoryed: ", clsNameRawDataLoader))

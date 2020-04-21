@@ -71,8 +71,9 @@ R -e "shiny::runGitHub('shiny_playground', 'weihuacern', subdir = 'R/')"
 
 - Optimize World Map Code (Done)
 - Add Time Series Code (Done)
-- Refactor with R6 OOP
-- Accelerate with parallel computation
+- Refactor with R6 OOP (Working)
+- Refactor Spacial Data processing
+- Integrate with time series prediction
 - Dockerize
 - Publish (Done)
 - Time Series database

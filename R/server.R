@@ -16,6 +16,8 @@ source("tsUIRenderUtils.R")
 ## Load raw data into memory first, save network IO
 cls <- rawDataLoader$new(dataTypeJHUConfGlobal)
 rawDataJHUConfGlobal <- cls$loadRawData()
+### NOTE, get time series index vector from raw data
+tsIndex <- cls$getTSIndexfromRawData(rawDataJHUConfGlobal)
 rm(cls)
 cls <- rawDataLoader$new(dataTypeJHUDeadGlobal)
 rawDataJHUDeadGlobal <- cls$loadRawData()
@@ -283,21 +285,14 @@ server <- function(input, output, session) {
     })
 
     # Table GeoMap View
-    ## Preparation for all GeoMaps
-    ### Derive date range
-    stdDataset <- rawDataJHUConfGlobal
-    daysStr <- names(stdDataset %>% dplyr::select(contains("/")))
-    daysDate <- as.Date(daysStr, "%m/%d/%y")
-    daysDate <- daysDate[!is.na(daysDate)]
-
     ## WorldMap
-    output[[constIDGeoMapWorld]] <- renderLeaflet({
+    output[[constIDGeoMapWorld]] <- leaflet::renderLeaflet({
         leaflet(data = mapShapeWorld) %>%
         setView(0, 30, zoom = 3)
     })
 
     ### Get World Map dataset
-    worldMapArea <- reactive({
+    worldMapArea <- shiny::reactive({
         print("World Map Calculation...")
         if (!is.null(input$wmcs)) {
             if (input$wmcs == constChoiceConf) {
@@ -310,13 +305,13 @@ server <- function(input, output, session) {
     })
 
     ### Set World Map Slider
-    worldMapSlider <- reactive(
-        getGeoMapSlider(input$wmvar, daysDate, constTypeWorldGeoMap)
+    worldMapSlider <- shiny::reactive(
+        getGeoMapSlider(input$wmvar, tsIndex, constTypeWorldGeoMap)
     )
     output[[constIDGeoMapSldWorld]] <- shiny::renderUI(worldMapSlider())
 
     ### Set World Map Selection
-    worldMapSelection <- reactive(
+    worldMapSelection <- shiny::reactive(
         getGeoMapSelection(input$wmcs, constTypeWorldGeoMap)
     )
     output[[constIDGeoMapSelWorld]] <- shiny::renderUI(worldMapSelection())
@@ -327,7 +322,7 @@ server <- function(input, output, session) {
     palCNT <- shiny::reactive(getLegendPal(maxCNT()))
     palRAT <- shiny::reactive(getLegendPal(maxRAT()))
 
-    observe({
+    shiny::observe({
         if (is.null(input$wmvar)) {
         } else {
             proxy <- leaflet::leafletProxy(constIDGeoMapWorld, data = mapShapeWorld)
@@ -363,16 +358,16 @@ server <- function(input, output, session) {
     })
 
     ### Set Color on World Map
-    observe({
+    shiny::observe({
         if (!is.null(input$wmday1)) {
             indicator1 <- format.Date(input$wmday1, "%m/%d/%y")
         } else {
-            indicator1 <- format.Date(max(daysDate), "%m/%d/%y")
+            indicator1 <- format.Date(max(tsIndex), "%m/%d/%y")
         }
         if (!is.null(input$wmday2)) {
             indicator2 <- format.Date(input$wmday2 - c(1, 0), "%m/%d/%y")
         } else {
-            indicator2 <- format.Date(c(min(daysDate) - 1, max(daysDate)), "%m/%d/%y")
+            indicator2 <- format.Date(c(min(tsIndex) - 1, max(tsIndex)), "%m/%d/%y")
         }
 
         if (is.null(input$wmvar)) {
@@ -419,7 +414,7 @@ server <- function(input, output, session) {
                     popup = countryPopup)
             } else if (input$wmvar %in% c(constVarTSCntConfNew, constVarTSCntDeadNew)) {
                 worldMapAreaSel <- worldMapArea() %>% dplyr::select(Area, Pop)
-                if (indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
+                if (indicator2[1] == format.Date(min(tsIndex) - 1, "%m/%d/%y")) {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]]
                 } else {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
@@ -445,7 +440,7 @@ server <- function(input, output, session) {
                     popup = countryPopup)
             } else {
                 worldMapAreaSel <- worldMapArea() %>% dplyr::select(Area, Pop)
-                if (indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
+                if (indicator2[1] == format.Date(min(tsIndex) - 1, "%m/%d/%y")) {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]]
                 } else {
                     worldMapAreaSel$CALCNUM <- worldMapArea()[, indicator2[2]] - worldMapArea()[, indicator2[1]]
@@ -476,13 +471,13 @@ server <- function(input, output, session) {
 
     ## CHNMap
     ### CHNMap frame with init coordinate
-    output[[constIDGeoMapCHN]] <- renderLeaflet({
+    output[[constIDGeoMapCHN]] <- leaflet::renderLeaflet({
         leaflet(data = mapShapeCHN) %>%
         setView(105, 35, zoom = 4)
     })
 
     ### Get CHN Map dataset
-    chnMapArea <- reactive({
+    chnMapArea <- shiny::reactive({
         print("CHN Map Calculation...")
         if (!is.null(input$chnmcs)) {
             if (input$chnmcs == constChoiceConf) {
@@ -495,13 +490,13 @@ server <- function(input, output, session) {
     })
 
     ### Set CHN Slider
-    chnMapSlider <- reactive(
-        getGeoMapSlider(input$chnmvar, daysDate, constTypeCHNGeoMap)
+    chnMapSlider <- shiny::reactive(
+        getGeoMapSlider(input$chnmvar, tsIndex, constTypeCHNGeoMap)
     )
     output[[constIDGeoMapSldCHN]] <- shiny::renderUI(chnMapSlider())
 
     ### Set CHN Map Selection
-    chnMapSelection <- reactive(
+    chnMapSelection <- shiny::reactive(
         getGeoMapSelection(input$chnmcs, constTypeCHNGeoMap)
     )
     output[[constIDGeoMapSelCHN]] <- shiny::renderUI(chnMapSelection())
@@ -510,7 +505,7 @@ server <- function(input, output, session) {
     maxCHNMapCNT <- shiny::reactive(getLegendMax(chnMapArea(), constVarTSCntConfNew, constTypeCHNGeoMap))
     palCHNMapCNT <- shiny::reactive(getLegendPal(maxCHNMapCNT()))
 
-    observe({
+    shiny::observe({
         if (is.null(input$chnmvar)) {
         } else {
             proxy <- leaflet::leafletProxy(constIDGeoMapCHN, data = mapShapeCHN)
@@ -530,23 +525,23 @@ server <- function(input, output, session) {
     })
 
     ### Set Color on CHN Map
-    observe({
+    shiny::observe({
         if (!is.null(input$chnmday1)) {
             indicator1 <- format.Date(input$chnmday1, "%m/%d/%y")
         } else {
-            indicator1 <- format.Date(max(daysDate), "%m/%d/%y")
+            indicator1 <- format.Date(max(tsIndex), "%m/%d/%y")
         }
         if (!is.null(input$chnmday2)) {
             indicator2 <- format.Date(input$chnmday2 - c(1, 0), "%m/%d/%y")
         } else {
-            indicator2 <- format.Date(c(min(daysDate) - 1, max(daysDate)), "%m/%d/%y")
+            indicator2 <- format.Date(c(min(tsIndex) - 1, max(tsIndex)), "%m/%d/%y")
         }
 
         if (is.null(input$chnmvar)) {
         } else {
             if (input$chnmvar %in% c(constVarTSCntConfNew, constVarTSCntDeadNew)) {
                 chnMapAreaSel <- chnMapArea() %>% dplyr::select(Area)
-                if (indicator2[1] == format.Date(min(daysDate) - 1, "%m/%d/%y")) {
+                if (indicator2[1] == format.Date(min(tsIndex) - 1, "%m/%d/%y")) {
                     chnMapAreaSel$CALCNUM <- chnMapArea()[, indicator2[2]]
                 } else {
                     chnMapAreaSel$CALCNUM <- chnMapArea()[, indicator2[2]] - chnMapArea()[, indicator2[1]]
@@ -595,13 +590,13 @@ server <- function(input, output, session) {
     })
 
     ## USAMap
-    output[[constIDGeoMapUSA]] <- renderLeaflet({
+    output[[constIDGeoMapUSA]] <- leaflet::renderLeaflet({
         leaflet(data = mapShapeUSA) %>%
         setView(0, 30, zoom = 3)
     })
 
     ### Get USA Map dataset
-    usaMapArea <- reactive({
+    usaMapArea <- shiny::reactive({
         print("USA Map Calculation...")
         if (!is.null(input$usamcs)) {
             if (input$usamcs == constChoiceConf) {
@@ -614,13 +609,13 @@ server <- function(input, output, session) {
     })
 
     ### Set USA Slider
-    usaMapSlider <- reactive(
-        getGeoMapSlider(input$usamvar, daysDate, constTypeUSAGeoMap)
+    usaMapSlider <- shiny::reactive(
+        getGeoMapSlider(input$usamvar, tsIndex, constTypeUSAGeoMap)
     )
     output[[constIDGeoMapSldUSA]] <- shiny::renderUI(usaMapSlider())
 
     ### Set USA Map Selection
-    usaMapSelection <- reactive(
+    usaMapSelection <- shiny::reactive(
         getGeoMapSelection(input$usamcs, constTypeUSAGeoMap)
     )
     output[[constIDGeoMapSelUSA]] <- shiny::renderUI(usaMapSelection())
